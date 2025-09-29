@@ -10,7 +10,7 @@ OB38R16T1W28SP
 | P0.3 | PCB-C.7   |                                      |           |  O  |      |
 | P0.4 | NTC1      | COFFEE BOILER, 10K NTC, 1K pullup 5V |           |  I  | ADC0 |
 | P0.5 | NTC2      | STEAM BOILER, 10K NTC, 1K pullup 5V  |           |  I  | ADC1 |
-| P0.6 | PCB-C.2   |                                      |           |  I  | ADC2 |
+| P0.6 | PCB-C.2   | 10K pulldown to GND                  |           |  I  | ADC2 |
 | P0.7 | PCB-C.3   |                                      |           |  O  |      |
 | P1.0 | PCB-C.4   |                                      |           |     |      |
 | P1.1 | PUMP      |                                      |           |  O  | PWM1 |

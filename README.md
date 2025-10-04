@@ -41,3 +41,11 @@ OB38R16T1W28SP
 |RX | P2.6 |
 |TX | P2.5 |
 |GND|      |
+
+# NTC
+
+NTC 10kΩ @25°C
+
+`float t = (-63.82) * ln(r) + 567.4` for coffee boiler
+
+`float t = (-49.28) * ln(r) + 461.08` for steam coil

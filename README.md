@@ -48,4 +48,4 @@ NTC 10kΩ @25°C
 
 `float t = (-63.82) * ln(r) + 567.4` for coffee boiler
 
-`float t = (-49.28) * ln(r) + 461.08` for steam coil
+`float t = (-44.08) * ln(r) + 416.42` for steam coil

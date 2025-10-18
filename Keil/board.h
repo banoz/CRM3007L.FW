@@ -21,8 +21,8 @@ typedef struct
 // Main system struct modeling the CRM3007L hardware
 typedef struct
 {
-    Boiler coffee;                    // Coffee boiler: NTC P0.4 (I), Heater P1.7 (O), Valve P3.0 (O)
-    Boiler steam;                     // Steam boiler: NTC P0.5 (I), Heater P1.6 (O), Valve P3.1 (O)
+    Boiler coffee;                    // Coffee boiler: NTC P0.4 (I), Heater P1.7 (O, PWM3), Valve P3.0 (O)
+    Boiler steam;                     // Steam boiler: NTC P0.5 (I), Heater P1.6 (O, PWM2), Valve P3.1 (O)
     unsigned int pump : 1;            // Pump control: P1.1 (O)
     unsigned int three_way_valve : 1; // 3-way valve: P3.2 (O)
     unsigned int buzzer : 1;          // Buzzer: P3.3 (O)

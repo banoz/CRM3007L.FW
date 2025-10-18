@@ -14,10 +14,9 @@ unsigned long nextTick = 0;
 
 void main(void)
 {
-
 	board_initialize();
 
-	// WDTI_Init();
+	WDTI_Init();
 
 	nextTick = getTick();
 
@@ -31,5 +30,7 @@ void main(void)
 		}
 
 		delay(1UL);
+		
+		WDTI_CountClear();
 	}
 }

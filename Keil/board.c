@@ -3,14 +3,24 @@
 #include "sensors.h"
 #include "HAL\ADC.h"
 #include "HAL\IIC.h"
+#include "HAL\PWM.h"
 #include "HAL\timer.h"
 #include <stdlib.h> // For atoi, _itoa, etc.
 #include <stdio.h>	// For sprintf
 
 #define STATUS_LED P0_1
+#define S1_LED P0_2
+#define S2_LED P0_3
+#define PWR_LED P2_3
+#define BUZZER P3_3
+
 #define PUMP P1_1
-#define H_STEAM = P1_6
-#define H_COFFEE = P1_7
+#define H_STEAM P1_6
+#define H_COFFEE P1_7
+
+#define K1_3WV P3_2
+#define K2_STEAM_VALVE P3_1
+#define K3_COFFEE_VALVE P3_0
 
 void board_initialize(void)
 {
@@ -29,7 +39,7 @@ void board_initialize(void)
 
 	// Optional: Initialize outputs to safe state (off, assuming active high)
 	P0 &= ~0x0E; // Clear P0.1,0.2,0.3 (LEDs off)
-	P0_7 = 0;	 // LED common off
+	P0_7 = 0;	 // LED common pull-down
 	// Set P1.1,1.6,1.7 (pump, heaters off)
 	P1_1 = 1;
 	P1_6 = 1;
@@ -45,13 +55,12 @@ void board_initialize(void)
 	TIMER0_initialize();
 	TR0 = 1;
 
-	// ADC init
+	// Peripherals init
 	ADC_initialize();
 
-	// Initialize UART
-	// init_UART();
-
 	IIC_init_slave();
+
+	PWM_initialize();
 
 	EA = 1;
 
@@ -67,18 +76,70 @@ char str_buf[16];
 
 extern unsigned char n_DAT[];
 
+void set_controls(unsigned char);
+void set_valves(unsigned char);
+void set_pump_power(unsigned char);
+void set_coffee_power(unsigned char);
+void set_steam_power(unsigned char);
+unsigned int map_coffee_boiler_temperature(unsigned int);
+unsigned int map_steam_boiler_temperature(unsigned int);
+
 void board_tick(void)
 {
-	char *str_ptr;
+	unsigned int coffee_temp = 0;
+	unsigned int steam_temp = 0;
+	
+	//ADC_poll();
 
 	sensors_update(&system_state);
+	
+	coffee_temp = map_coffee_boiler_temperature(system_state.coffee.ntc_value);	
+	steam_temp = map_steam_boiler_temperature(system_state.steam.ntc_value);
 
-	n_DAT[1] = system_state.coffee.ntc_value & 0xFF;
-	n_DAT[2] = system_state.coffee.ntc_value >> 8;
-	n_DAT[3] = system_state.steam.ntc_value & 0xFF;
-	n_DAT[4] = system_state.steam.ntc_value >> 8;
+	//TODO implement IIC mutex
+	
+	n_DAT[0] = system_state.multi_switch | (system_state.steam_switch << 4);
+	n_DAT[1] = coffee_temp & 0xFF;
+	n_DAT[2] = coffee_temp >> 8;
+	n_DAT[3] = steam_temp & 0xFF;
+	n_DAT[4] = steam_temp >> 8;
+	
+	set_controls(n_DAT[8]); // n_DAT[8]
+	set_valves(n_DAT[9]); // n_DAT[9]
+	set_pump_power(n_DAT[10]); // n_DAT[10]
+	set_coffee_power(n_DAT[11]); // n_DAT[11]
+	set_steam_power(n_DAT[12]); // n_DAT[12]
+}
 
-	STATUS_LED = !STATUS_LED;
+
+void set_controls(unsigned char control_value) // n_DAT[8]
+{
+	STATUS_LED = (control_value >> 0) & 0x01;
+	PWR_LED = (control_value >> 1) & 0x01;
+  S1_LED = (control_value >> 2) & 0x01;
+  S2_LED = (control_value >> 3) & 0x01;
+}
+
+void set_valves(unsigned char control_value) // n_DAT[9]
+{
+  K3_COFFEE_VALVE = (control_value >> 0) & 0x01;
+  K2_STEAM_VALVE = (control_value >> 1) & 0x01;
+  K1_3WV = (control_value >> 2) & 0x01;
+}
+
+void set_pump_power(unsigned char control_value) // n_DAT[10]
+{
+	psm_value = control_value;
+}
+
+void set_coffee_power(unsigned char control_value) // n_DAT[11]
+{
+	PWM_Output(0, 0, control_value, 0);
+}
+
+void set_steam_power(unsigned char control_value) // n_DAT[12]
+{
+	PWM_Output(0, control_value, 0, 0);
 }
 
 /// PSM

@@ -39,6 +39,16 @@ void ADC_poll(void)
 	}
 }
 
+unsigned int map_coffee_boiler_temperature(unsigned int adc_value)
+{
+	return (unsigned int)(COFFEE_NTC_A + (COFFEE_NTC_B * log((float)(unsigned int)adc_value)));
+}
+
+unsigned int map_steam_boiler_temperature(unsigned int adc_value)
+{	
+	return (unsigned int)(STEAM_NTC_A + (STEAM_NTC_B * log((float)(unsigned int)adc_value)));
+}
+
 MultiSwitchState get_multi_switch(unsigned int value)
 {
 	if (value > 3300)
@@ -61,8 +71,8 @@ MultiSwitchState get_multi_switch(unsigned int value)
 
 void sensors_update(SystemState *sys)
 {
-	sys->coffee.ntc_value = (unsigned int)(((-638) * log((float)(unsigned int)adc_values[0]) + 5674)); // ADC0: P0.4
-	sys->steam.ntc_value = (unsigned int)(((-441) * log((float)(unsigned int)adc_values[1]) + 4164));  // ADC1: P0.5
-	sys->multi_switch = get_multi_switch(adc_values[2]);											   // ADC2: P0.6
+	sys->coffee.ntc_value = adc_values[0]; // ADC0: P0.4
+	sys->steam.ntc_value = adc_values[1]; // ADC1: P0.5
+	sys->multi_switch = get_multi_switch(adc_values[2]); // ADC2: P0.6
 	sys->steam_switch = P0_0;
 }

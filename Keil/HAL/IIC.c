@@ -18,7 +18,7 @@
 unsigned char n_RW          = d_null;
 unsigned char n_Addr        = d_null;
 unsigned char n_Next_Step   = d_null;
-unsigned char n_DAT[16];
+unsigned char n_DAT[16] 		= {0};
 
 //=====================================================================
 

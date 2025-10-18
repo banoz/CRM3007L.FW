@@ -1,9 +1,9 @@
 #include "OB38R16T1.h"
 #include "PWM.h"
 
-#define PWM_VECTOR  8           //PWM Interrupt Vevtor
-#define d_PWMCS     0x00        //PWMCS[2:0] (PWM clock select 0~7)
-#define d_PWMXEN    0x01        //PWM Channel Enable (0~F)
+#define PWM_VECTOR  8           //PWM Interrupt Vector
+#define d_PWMCS     0x06        //PWMCS[2:0] (PWM clock select 0~7)
+#define d_PWMXEN    0x06        //PWM Channel Enable (0~F)
 #define d_PWM0PS    0x00        //PWM0 Channel polarity select
 #define d_PWM1PS    0x00        //PWM1 Channel polarity select
 #define d_PWM2PS    0x00        //PWM2 Channel polarity select
@@ -30,7 +30,7 @@ void PWM_initialize(void)  //Initialize PWM
     PWMDT0 = (d_DTP0<<6) | d_DT0;
     PWMDT1 = (d_DTP1<<6) | d_DT1;
     PWMC2  = (d_PWM3PS<<3) | (d_PWM2PS<<2) | (d_PWM1PS<<1) | (d_PWM0PS) ;
-    EA     = 1;             //Enable All Interrupt
+    //EA     = 1;             //Enable All Interrupt
 }
 
 void PWM_Output(unsigned int PWMD0,unsigned int PWMD1,

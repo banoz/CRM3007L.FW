@@ -69,7 +69,8 @@ void board_initialize(void)
 
 SystemState system_state;
 
-unsigned int psm_value = 0;
+unsigned char psm_range = 0x7F;
+unsigned char psm_value = 0;
 unsigned int psm_counter = 0;
 
 char str_buf[16];
@@ -79,73 +80,93 @@ extern unsigned char n_DAT[];
 void set_controls(unsigned char);
 void set_valves(unsigned char);
 void set_pump_power(unsigned char);
-void set_coffee_power(unsigned char);
-void set_steam_power(unsigned char);
+void set_coffee_power(unsigned char, unsigned int);
+void set_steam_power(unsigned char, unsigned int);
 unsigned int map_coffee_boiler_temperature(unsigned int);
 unsigned int map_steam_boiler_temperature(unsigned int);
 
 void board_tick(void)
 {
-	unsigned int coffee_temp = 0;
-	unsigned int steam_temp = 0;
-	
-	//ADC_poll();
+	unsigned int coffee_temp = 0; // degree C * 10
+	unsigned int steam_temp = 0;  // degree C * 10
+
+	// ADC_poll();
 
 	sensors_update(&system_state);
-	
-	coffee_temp = map_coffee_boiler_temperature(system_state.coffee.ntc_value);	
+
+	coffee_temp = map_coffee_boiler_temperature(system_state.coffee.ntc_value);
 	steam_temp = map_steam_boiler_temperature(system_state.steam.ntc_value);
 
-	//TODO implement IIC mutex
-	
+	// TODO consider implementing IIC mutex
+
 	n_DAT[0] = system_state.multi_switch | (system_state.steam_switch << 4);
 	n_DAT[1] = coffee_temp & 0xFF;
 	n_DAT[2] = coffee_temp >> 8;
 	n_DAT[3] = steam_temp & 0xFF;
 	n_DAT[4] = steam_temp >> 8;
-	
-	set_controls(n_DAT[8]); // n_DAT[8]
-	set_valves(n_DAT[9]); // n_DAT[9]
-	set_pump_power(n_DAT[10]); // n_DAT[10]
-	set_coffee_power(n_DAT[11]); // n_DAT[11]
-	set_steam_power(n_DAT[12]); // n_DAT[12]
-}
 
+	n_DAT[6] = psm_counter & 0xFF;
+
+	set_controls(n_DAT[8]);					  // n_DAT[8]
+	set_valves(n_DAT[9]);					  // n_DAT[9]
+	set_pump_power(n_DAT[10]);				  // n_DAT[10]
+	set_coffee_power(n_DAT[11], coffee_temp); // n_DAT[11]
+	set_steam_power(n_DAT[12], steam_temp);	  // n_DAT[12]
+}
 
 void set_controls(unsigned char control_value) // n_DAT[8]
 {
 	STATUS_LED = (control_value >> 0) & 0x01;
 	PWR_LED = (control_value >> 1) & 0x01;
-  S1_LED = (control_value >> 2) & 0x01;
-  S2_LED = (control_value >> 3) & 0x01;
+	S1_LED = (control_value >> 2) & 0x01;
+	S2_LED = (control_value >> 3) & 0x01;
+
+	if ((control_value >> 7) & 0x01)
+	{
+		psm_counter = 0;
+	}
 }
 
 void set_valves(unsigned char control_value) // n_DAT[9]
 {
-  K3_COFFEE_VALVE = (control_value >> 0) & 0x01;
-  K2_STEAM_VALVE = (control_value >> 1) & 0x01;
-  K1_3WV = (control_value >> 2) & 0x01;
+	K3_COFFEE_VALVE = (control_value >> 0) & 0x01;
+	K2_STEAM_VALVE = (control_value >> 1) & 0x01;
+	K1_3WV = (control_value >> 2) & 0x01;
 }
 
 void set_pump_power(unsigned char control_value) // n_DAT[10]
 {
+	if (control_value > psm_range)
+	{
+		control_value = psm_range;
+	}
+
 	psm_value = control_value;
 }
 
-void set_coffee_power(unsigned char control_value) // n_DAT[11]
+void set_coffee_power(unsigned char control_value, unsigned int current_temp) // n_DAT[11]
 {
-	PWM_Output(0, 0, control_value, 0);
+	if (current_temp > 1200) // cap at 120C
+	{
+		control_value = 0;
+	}
+
+	PWM_Output(0, 0, control_value, 0); // 0~99 range
 }
 
-void set_steam_power(unsigned char control_value) // n_DAT[12]
+void set_steam_power(unsigned char control_value, unsigned int current_temp) // n_DAT[12]
 {
-	PWM_Output(0, control_value, 0, 0);
+	if (current_temp > 1800) // cap at 180C
+	{
+		control_value = 0;
+	}
+
+	PWM_Output(0, control_value, 0, 0); // 0~99 range
 }
 
 /// PSM
 
 unsigned int psm_a = 0;
-unsigned int psm_range = 100;
 
 void calculateSkip(void)
 {

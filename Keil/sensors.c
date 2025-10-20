@@ -28,7 +28,6 @@ void ADC_poll(void)
 		unsigned char adcChannel = ADCC2 & 0x0F;
 
 		adc_values[adcChannel] = n_data;
-		ADCfinish = 0;
 
 		if (adcChannel++ > 2)
 		{
@@ -36,6 +35,8 @@ void ADC_poll(void)
 		}
 
 		ADC_Start(adcChannel);
+
+		ADCfinish = 0;
 	}
 }
 
@@ -45,7 +46,7 @@ unsigned int map_coffee_boiler_temperature(unsigned int adc_value)
 }
 
 unsigned int map_steam_boiler_temperature(unsigned int adc_value)
-{	
+{
 	return (unsigned int)(STEAM_NTC_A + (STEAM_NTC_B * log((float)(unsigned int)adc_value)));
 }
 
@@ -69,10 +70,10 @@ MultiSwitchState get_multi_switch(unsigned int value)
 	return SWITCH_NONE;
 }
 
-void sensors_update(SystemState *sys)
+void sensors_update()
 {
-	sys->coffee.ntc_value = adc_values[0]; // ADC0: P0.4
-	sys->steam.ntc_value = adc_values[1]; // ADC1: P0.5
-	sys->multi_switch = get_multi_switch(adc_values[2]); // ADC2: P0.6
-	sys->steam_switch = P0_0;
+	system_state.coffee.ntc_value = adc_values[0];				 // ADC0: P0.4
+	system_state.steam.ntc_value = adc_values[1];				 // ADC1: P0.5
+	system_state.multi_switch = get_multi_switch(adc_values[2]); // ADC2: P0.6
+	system_state.steam_switch = P0_0;
 }

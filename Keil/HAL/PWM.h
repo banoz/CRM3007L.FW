@@ -18,10 +18,10 @@ void main(void) //Main Function Start
 }
 */
 
-extern unsigned int g_PWMD0;        //PWMD0[9:0]=Duty (PWM Channel 0 Data Register 0~1023)
-extern unsigned int g_PWMD1;        //PWMD1[9:0]=Duty (PWM Channel 1 Data Register 0~1023)
-extern unsigned int g_PWMD2;        //PWMD2[9:0]=Duty (PWM Channel 2 Data Register 0~1023)
-extern unsigned int g_PWMD3;        //PWMD3[9:0]=Duty (PWM Channel 3 Data Register 0~1023)
+//extern unsigned int g_PWMD0;        //PWMD0[9:0]=Duty (PWM Channel 0 Data Register 0~1023)
+//extern unsigned int g_PWMD1;        //PWMD1[9:0]=Duty (PWM Channel 1 Data Register 0~1023)
+//extern unsigned int g_PWMD2;        //PWMD2[9:0]=Duty (PWM Channel 2 Data Register 0~1023)
+//extern unsigned int g_PWMD3;        //PWMD3[9:0]=Duty (PWM Channel 3 Data Register 0~1023)
 
 void PWM_initialize(void);
 void PWM_Output(unsigned int PWMD0, unsigned int PWMD1,

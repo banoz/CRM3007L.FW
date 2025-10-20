@@ -1,20 +1,30 @@
-#ifndef __WDTI_H__
-#define __WDTI_H__
+#ifndef __WDTR_H__
+#define __WDTR_H__
 
 // Example Code
 /*
 #include "WDT.h"
 #include "OB38R16T1.h"
 
-void main(void)             //Main Function Start
+void main(void)                 //Main Function Start
 {
-    WDTI_Init();            //Call WDT Initial Subroutine
-    while(1);
+    if ((RSTS&0x08))            //Decision WDTR Occur (WDTRF=1)  
+    {
+        RSTS = RSTS&0xF7;       //Clear WDTRF (WDT Timer Reset Flag)
+        WDTR_CountClear();      //Clear WDTR Count Subroutine
+        WDTR_Disable();
+        while(1);
+    }
+    WDTR_Init();                //Call WDTR Initial Subroutine	
+    while(1)
+    {
+        WDTR_CountClear();      //Clear WDTR Count Subroutine
+    }
 }
 */
 
-void WDTI_Init(void);
-void WDTI_CountClear(void);
-void WDTI_Disable(void);
+void WDTR_Init(void);
+void WDTR_CountClear(void);
+void WDTR_Disable(void);
 
 #endif

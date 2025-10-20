@@ -11,12 +11,13 @@ void delay(unsigned long cnt)
 }
 
 unsigned long nextTick = 0;
+unsigned long lastTick = 0;
 
 void main(void)
 {
 	board_initialize();
 
-	WDTI_Init();
+	WDTR_Init();
 
 	nextTick = getTick();
 
@@ -27,10 +28,16 @@ void main(void)
 			nextTick = getTick() + 30;
 
 			board_tick();
+
+			WDTR_CountClear();
+		}
+
+		if (lastTick < getTick())
+		{
+			lastTick = getTick();
+			check_zc();
 		}
 
 		delay(1UL);
-		
-		WDTI_CountClear();
 	}
 }

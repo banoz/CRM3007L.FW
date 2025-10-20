@@ -47,10 +47,6 @@ void board_initialize(void)
 	P2_3 = 0;  // PWR LED off
 	P3 = 0x00; // Valves, buzzer off
 
-	// INT0 init
-	IT0 = 1;
-	EX0 = 1;
-
 	// Timer init
 	TIMER0_initialize();
 	TR0 = 1;
@@ -62,12 +58,16 @@ void board_initialize(void)
 
 	PWM_initialize();
 
+	// INT0 init
+	IT0 = 1;
+	EX0 = 1;
+
 	EA = 1;
 
 	ADC_Start(2); // poll the buttons first
 }
 
-SystemState system_state;
+SystemState system_state = {0};
 
 unsigned char psm_range = 0x7F;
 unsigned char psm_value = 0;
@@ -90,9 +90,7 @@ void board_tick(void)
 	unsigned int coffee_temp = 0; // degree C * 10
 	unsigned int steam_temp = 0;  // degree C * 10
 
-	// ADC_poll();
-
-	sensors_update(&system_state);
+	sensors_update();
 
 	coffee_temp = map_coffee_boiler_temperature(system_state.coffee.ntc_value);
 	steam_temp = map_steam_boiler_temperature(system_state.steam.ntc_value);
@@ -167,6 +165,7 @@ void set_steam_power(unsigned char control_value, unsigned int current_temp) // 
 /// PSM
 
 unsigned int psm_a = 0;
+volatile bit zero_crossed = 0;
 
 void calculateSkip(void)
 {
@@ -198,15 +197,20 @@ void calculateSkip(void)
 	PUMP = psm_skip;
 }
 
-void on_zc(void)
+void check_zc(void)
 {
-	ADC_poll();
+	if (zero_crossed)
+	{
+		ADC_poll();
 
-	calculateSkip();
+		calculateSkip();
+
+		zero_crossed = 0;
+	}
 }
 
 void INT0Interrupt(void) interrupt d_INT0_Vector
 {
+	zero_crossed = 1;
 	IE0 = 0;
-	on_zc();
 }

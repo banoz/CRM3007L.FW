@@ -39,4 +39,8 @@ void board_initialize(void);
 
 void board_tick(void);
 
+void check_zc(void);
+
+extern SystemState system_state;
+
 #endif

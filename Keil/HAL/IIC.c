@@ -29,8 +29,6 @@ void IIC_interrupt() interrupt d_IIC_Vector
 		RXIF = 0;
 		if((IICA1 & 0x01) | (IICA2 & 0x01))    //match
 		{
-			P3_3 = !P3_3;
-			
 			n_RW = RW;
 			
 			if (n_RW == d_Write)

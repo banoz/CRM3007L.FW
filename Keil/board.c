@@ -47,6 +47,8 @@ void board_initialize(void)
 	P2_3 = 0;  // PWR LED off
 	P3 = 0x00; // Valves, buzzer off
 
+	EA = 0;
+
 	// Timer init
 	TIMER0_initialize();
 	TR0 = 1;

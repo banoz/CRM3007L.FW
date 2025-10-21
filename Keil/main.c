@@ -17,7 +17,7 @@ void main(void)
 {
 	board_initialize();
 
-	WDTR_Init();
+	// WDTR_Init(); // TODO this breaks ADC, fix later
 
 	nextTick = getTick();
 

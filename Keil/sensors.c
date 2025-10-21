@@ -4,7 +4,7 @@
 #include "board.h"
 #include "sensors.h"
 
-unsigned int adc_values[3] = {0, 0, 0}; // Store readings for CH0, CH1, CH2
+volatile unsigned int adc_values[3] = {0, 0, 0}; // Store readings for CH0, CH1, CH2
 
 extern unsigned int n_data;
 extern bit ADCfinish;
@@ -29,7 +29,7 @@ void ADC_poll(void)
 
 		adc_values[adcChannel] = n_data;
 
-		if (adcChannel++ > 2)
+		if (++adcChannel > 2)
 		{
 			adcChannel = 0;
 		}

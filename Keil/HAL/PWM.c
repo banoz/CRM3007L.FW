@@ -23,7 +23,7 @@
 
 void PWM_initialize(void) // Initialize PWM
 {
-    EA = 0;            // Disable All Interrupt Function
+    // EA = 0;            // Disable All Interrupt Function
     IEPWM = (d_PWMIE); // Enable PWM Interrupt Function
     PWMMDH = PWMMD >> 8;
     PWMMDL = PWMMD;

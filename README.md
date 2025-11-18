@@ -14,7 +14,7 @@ OB38R16T1W28SP
 | P0.7 | PCB-C.3   |                                      |           |  O  |      |
 | P1.0 | PCB-C.4   |                                      |           |     |      |
 | P1.1 | PUMP      |                                      |           |  O  | PWM1 |
-| P1.3 | Z-C       |                                      |           |  I  | INT0 |
+| P1.3 | Z-C       | Zero-Cross Detection                 |           |  I  | INT0 |
 | P1.6 | H2        | STEAM BOILER                         |           |  O  | PWM2 |
 | P1.7 | H1        | COFFEE BOILER                        |           |  O  | PWM3 |
 | P2.3 | PCB-C.5   |                                      |           |  O  |      |
@@ -22,8 +22,8 @@ OB38R16T1W28SP
 | P2.6 | PCB-D.RX  |                                      |           |     | RX_1 |
 | P3.0 | K3        | COFFEE VALVE                         |           |  O  |      |
 | P3.1 | K2        | STEAM VALVE                          |           |  O  |      |
-| P3.2 | K1        | 3WV                                  |           |  O  |      |
-| P3.3 |           | BUZ                                  |           |  O  |      |
+| P3.2 | K1        | 3-Way Valve (3WV)                    |           |  O  |      |
+| P3.3 |           | Buzzer (BUZ)                         |           |  O  |      |
 
 | |PCB-C |                              |
 |-|------|------------------------------|
@@ -42,10 +42,28 @@ OB38R16T1W28SP
 |TX | P2.5 |
 |GND|      |
 
-# NTC
+# NTC Thermistor Specifications
 
-NTC 10kΩ @25°C
+**Type**: NTC (Negative Temperature Coefficient)  
+**Resistance**: 10kΩ @ 25°C  
+**Circuit**: 1kΩ pullup resistor to 5V  
 
-`float t = (-63.82) * ln(r) + 567.4` for coffee boiler
+## Temperature Calculation Formulas
 
-`float t = (-44.08) * ln(r) + 416.42` for steam coil
+These empirical formulas convert NTC resistance to temperature in degrees Celsius.
+
+**Coffee Boiler Temperature (°C)**:
+```c
+// r = NTC resistance in kΩ
+// Returns temperature in degrees Celsius
+float temp_coffee = (-63.82f) * logf(r) + 567.4f;
+```
+
+**Steam Coil Temperature (°C)**:
+```c
+// r = NTC resistance in kΩ  
+// Returns temperature in degrees Celsius
+float temp_steam = (-44.08f) * logf(r) + 416.42f;
+```
+
+**Note**: In C/C++, use `logf()` or `log()` for natural logarithm, not `ln()`.

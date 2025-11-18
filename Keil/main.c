@@ -4,6 +4,8 @@
 #include "HAL\WDT.h"
 #include "board.h"
 
+#define TICK_INTERVAL_MS 30  // Main control loop interval in milliseconds
+
 void delay(unsigned long cnt)
 {
 	while (cnt--)
@@ -25,7 +27,7 @@ void main(void)
 	{
 		if (nextTick < getTick())
 		{
-			nextTick = getTick() + 30;
+			nextTick = getTick() + TICK_INTERVAL_MS;
 
 			board_tick();
 

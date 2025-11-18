@@ -42,34 +42,73 @@ void ADC_poll(void)
 
 unsigned int map_coffee_boiler_temperature(unsigned int adc_value)
 {
-	return (unsigned int)(COFFEE_NTC_A + (COFFEE_NTC_B * log((float)(unsigned int)adc_value)));
+	float temp;
+	
+	// Sensor fault detection - check for out-of-range ADC values
+	if (adc_value < ADC_MIN_VALID || adc_value > ADC_MAX_VALID)
+	{
+		return TEMP_ERROR_VALUE; // Sensor fault (open/short circuit)
+	}
+	
+	// Calculate temperature using NTC formula
+	temp = COFFEE_NTC_A + (COFFEE_NTC_B * log((float)adc_value));
+	
+	// Validate temperature range (0°C to 250°C)
+	if (temp < 0)
+		return 0;
+	if (temp > 2500)
+		return 2500;
+	
+	return (unsigned int)temp;
 }
 
 unsigned int map_steam_boiler_temperature(unsigned int adc_value)
 {
-	return (unsigned int)(STEAM_NTC_A + (STEAM_NTC_B * log((float)(unsigned int)adc_value)));
+	float temp;
+	
+	// Sensor fault detection - check for out-of-range ADC values
+	if (adc_value < ADC_MIN_VALID || adc_value > ADC_MAX_VALID)
+	{
+		return TEMP_ERROR_VALUE; // Sensor fault (open/short circuit)
+	}
+	
+	// Calculate temperature using NTC formula
+	temp = STEAM_NTC_A + (STEAM_NTC_B * log((float)adc_value));
+	
+	// Validate temperature range (0°C to 250°C)
+	if (temp < 0)
+		return 0;
+	if (temp > 2500)
+		return 2500;
+	
+	return (unsigned int)temp;
 }
 
 MultiSwitchState get_multi_switch(unsigned int value)
 {
-	if (value > 3300)
+	if (value > SWITCH_PWR_THRESHOLD)
 	{
-		return SWITCH_PWR; // 3723
+		return SWITCH_PWR;
 	}
 
-	if (value > 1700)
+	if (value > SWITCH_S1_THRESHOLD)
 	{
-		return SWITCH_S1; // 2048
+		return SWITCH_S1;
 	}
 
-	if (value > 700)
+	if (value > SWITCH_S2_THRESHOLD)
 	{
-		return SWITCH_S2; // 1024
+		return SWITCH_S2;
 	}
 
 	return SWITCH_NONE;
 }
 
+/**
+ * @brief Update all sensor readings into system_state structure
+ * @note Reads ADC values and converts to appropriate units/states
+ * @note Updates coffee/steam NTC values, multi-switch state, and steam switch state
+ */
 void sensors_update()
 {
 	system_state.coffee.ntc_value = adc_values[0];				 // ADC0: P0.4

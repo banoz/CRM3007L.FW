@@ -22,6 +22,11 @@
 #define K2_STEAM_VALVE P3_1
 #define K3_COFFEE_VALVE P3_0
 
+/**
+ * @brief Initialize board hardware and peripherals
+ * @note Configures GPIO, timers, ADC, I2C, PWM, and external interrupt
+ * @note Sets all outputs to safe initial state (off)
+ */
 void board_initialize(void)
 {
 	// P0M1 = 0b01110001 (0x71), P0M0 = 0b10001110 (0x8E)
@@ -71,9 +76,15 @@ void board_initialize(void)
 
 SystemState system_state = {0};
 
-unsigned char psm_range = 0x7F;
-unsigned char psm_value = 0;
-unsigned int psm_counter = 0;
+/// Pulse Skip Modulation (PSM) for pump control
+// PSM is used to control pump speed by skipping AC half-cycles
+// psm_value: desired pump power (0 to psm_range)
+// psm_range: maximum range (0x7F = 127)
+// psm_counter: counts active pump cycles for monitoring
+
+unsigned char psm_range = 0x7F;  // PSM range: 0-127 (7-bit control)
+unsigned char psm_value = 0;      // Current PSM power setting
+unsigned int psm_counter = 0;     // Count of pump activation cycles
 
 char str_buf[16];
 
@@ -87,6 +98,11 @@ void set_steam_power(unsigned char, unsigned int);
 unsigned int map_coffee_boiler_temperature(unsigned int);
 unsigned int map_steam_boiler_temperature(unsigned int);
 
+/**
+ * @brief Main control loop tick function - updates sensors and controls outputs
+ * @note Called every TICK_INTERVAL_MS (30ms) from main loop
+ * @note Reads temperatures, updates I2C registers, and applies control commands
+ */
 void board_tick(void)
 {
 	unsigned int coffee_temp = 0; // degree C * 10
@@ -114,6 +130,12 @@ void board_tick(void)
 	set_steam_power(n_DAT[12], steam_temp);	  // n_DAT[12]
 }
 
+/**
+ * @brief Set control LEDs and status indicators
+ * @param control_value Bit-packed control byte from I2C register n_DAT[8]
+ *                      [0]: STATUS_LED, [1]: PWR_LED, [2]: S1_LED, [3]: S2_LED
+ *                      [7]: PSM counter reset flag
+ */
 void set_controls(unsigned char control_value) // n_DAT[8]
 {
 	STATUS_LED = (control_value >> 0) & 0x01;
@@ -127,6 +149,11 @@ void set_controls(unsigned char control_value) // n_DAT[8]
 	}
 }
 
+/**
+ * @brief Set valve states
+ * @param control_value Bit-packed control byte from I2C register n_DAT[9]
+ *                      [0]: K3_COFFEE_VALVE, [1]: K2_STEAM_VALVE, [2]: K1_3WV
+ */
 void set_valves(unsigned char control_value) // n_DAT[9]
 {
 	K3_COFFEE_VALVE = (control_value >> 0) & 0x01;
@@ -134,6 +161,11 @@ void set_valves(unsigned char control_value) // n_DAT[9]
 	K1_3WV = (control_value >> 2) & 0x01;
 }
 
+/**
+ * @brief Set pump power using PSM (Pulse Skip Modulation)
+ * @param control_value Desired power level from I2C register n_DAT[10] (0 to psm_range)
+ * @note Value is clamped to psm_range (0x7F) if it exceeds maximum
+ */
 void set_pump_power(unsigned char control_value) // n_DAT[10]
 {
 	if (control_value > psm_range)
@@ -144,31 +176,39 @@ void set_pump_power(unsigned char control_value) // n_DAT[10]
 	psm_value = control_value;
 }
 
+/**
+ * @brief Set coffee boiler heater power
+ * @param control_value Desired power level from I2C register n_DAT[11] (0-99)
+ * @param current_temp Current temperature (unused, kept for compatibility)
+ * @note Sets PWM duty cycle directly without temperature constraints
+ */
 void set_coffee_power(unsigned char control_value, unsigned int current_temp) // n_DAT[11]
 {
-	if (current_temp > 1200) // cap at 120C
-	{
-		control_value = 0;
-	}
-
 	PWM_Output(0, 0, control_value, 0); // 0~99 range
 }
 
+/**
+ * @brief Set steam boiler heater power
+ * @param control_value Desired power level from I2C register n_DAT[12] (0-99)
+ * @param current_temp Current temperature (unused, kept for compatibility)
+ * @note Sets PWM duty cycle directly without temperature constraints
+ */
 void set_steam_power(unsigned char control_value, unsigned int current_temp) // n_DAT[12]
 {
-	if (current_temp > 1800) // cap at 180C
-	{
-		control_value = 0;
-	}
-
 	PWM_Output(0, control_value, 0, 0); // 0~99 range
 }
 
-/// PSM
+/// PSM (Pulse Skip Modulation) algorithm
+// Implements Bresenham-like algorithm to determine if pump should run this cycle
+// Accumulates psm_value each cycle; when it exceeds psm_range, pump activates
 
-unsigned int psm_a = 0;
-volatile bit zero_crossed = 0;
+unsigned int psm_a = 0;           // PSM accumulator
+volatile bit zero_crossed = 0;    // Flag set by INT0 on zero-crossing detection
 
+/**
+ * @brief Calculate whether to skip the current pump cycle
+ * @note Called on each AC zero-crossing to implement PSM control
+ */
 void calculateSkip(void)
 {
 	bit psm_skip = 0;
@@ -199,6 +239,11 @@ void calculateSkip(void)
 	PUMP = psm_skip;
 }
 
+/**
+ * @brief Check and handle AC zero-crossing events
+ * @note Called from main loop to process zero_crossed flag set by INT0 ISR
+ * @note Triggers ADC polling and PSM calculation on each zero-crossing
+ */
 void check_zc(void)
 {
 	if (zero_crossed)
@@ -211,6 +256,11 @@ void check_zc(void)
 	}
 }
 
+/**
+ * @brief INT0 Interrupt Service Routine - AC Zero-Crossing Detection
+ * @note Sets zero_crossed flag to signal main loop that zero-crossing occurred
+ * @note Triggered by P1.3 (Z-C input) on falling edge
+ */
 void INT0Interrupt(void) interrupt d_INT0_Vector
 {
 	zero_crossed = 1;

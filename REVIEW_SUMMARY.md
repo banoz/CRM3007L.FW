@@ -27,14 +27,14 @@ This document summarizes the code review performed on the CRM3007L coffee machin
    - Returns error value (0xFFFF) when sensor fault detected
    - Temperature functions now check for out-of-range ADC values (< 10 or > 4085)
 
-2. **Enhanced Temperature Safety Checks**: Improved heater control functions
-   - Coffee heater shuts off if temperature exceeds 120°C OR sensor fault detected
-   - Steam heater shuts off if temperature exceeds 180°C OR sensor fault detected
-   - Uses named constants instead of magic numbers
+2. **Architecture Clarification**: Heater control functions act as simple PWM actuators
+   - Temperature safety logic is handled by the I2C master controller
+   - Firmware provides sensor readings to master via I2C
+   - Master implements PID control and safety limits
+   - Clean separation of concerns between firmware and control logic
 
 ### Code Quality Improvements ✅
 1. **Named Constants**: Replaced magic numbers throughout codebase
-   - Temperature limits: COFFEE_TEMP_MAX, STEAM_TEMP_MAX
    - Switch thresholds: SWITCH_PWR_THRESHOLD, SWITCH_S1_THRESHOLD, SWITCH_S2_THRESHOLD
    - ADC validation: ADC_MIN_VALID, ADC_MAX_VALID, TEMP_ERROR_VALUE
    - Timing: TICK_INTERVAL_MS

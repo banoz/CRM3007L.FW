@@ -17,35 +17,29 @@ This firmware controls a coffee machine with two boilers (coffee and steam), mul
 
 ## Critical Issues (High Priority)
 
-### 1. **Unsafe Temperature Fail-Safe Logic**
+### 1. **Temperature Safety Handled by I2C Master**
 
-**Location:** `board.c`, lines 148-165
+**Location:** `board.c`, lines 183-200
 
-**Issue:**
+**Architecture Decision:**
+The `set_coffee_power()` and `set_steam_power()` functions are designed as simple PWM actuators that receive power commands from the I2C master controller. Temperature safety logic is intentionally NOT implemented in the firmware - it should be handled by the external controller.
+
+**Current Implementation:**
 ```c
 void set_coffee_power(unsigned char control_value, unsigned int current_temp)
 {
-    if (current_temp > 1200) // cap at 120C
-    {
-        control_value = 0;
-    }
     PWM_Output(0, 0, control_value, 0); // 0~99 range
 }
 ```
 
-**Problems:**
-- No validation of temperature sensor readings before use
-- If NTC sensor fails (open/short circuit), `current_temp` could be invalid
-- No over-temperature emergency shutdown mechanism
-- Temperature limits are hardcoded without hysteresis
-- Missing redundant safety checks
+**Design Rationale:**
+- Firmware acts as a low-level actuator
+- I2C master (external controller) implements PID control and safety logic
+- Temperature readings are sent to master via I2C registers
+- Master sends calculated power commands back to firmware
+- Separation of concerns: firmware handles hardware, master handles control logic
 
-**Recommendation:**
-- Add sensor fault detection (check for out-of-range ADC values)
-- Implement hysteresis for temperature control
-- Add emergency shutdown for sensor failures
-- Log temperature anomalies
-- Add multiple safety thresholds (warning, critical, emergency)
+**Note:** If firmware-level safety is required, the I2C master should be configured with appropriate temperature limits and control algorithms.
 
 ---
 

@@ -114,5 +114,5 @@ void sensors_update()
 	system_state.coffee.ntc_value = adc_values[0];				 // ADC0: P0.4
 	system_state.steam.ntc_value = adc_values[1];				 // ADC1: P0.5
 	system_state.multi_switch = get_multi_switch(adc_values[2]); // ADC2: P0.6
-	system_state.steam_switch = P0_0;
+	system_state.steam_switch = !P0_0;
 }

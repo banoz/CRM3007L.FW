@@ -15,12 +15,16 @@
 #define BUZZER P3_3
 
 #define PUMP P1_1
-#define H_STEAM P1_6
-#define H_COFFEE P1_7
+#define H_STEAM P1_7
+#define H_COFFEE P1_6
 
 #define K1_3WV P3_2
 #define K2_STEAM_VALVE P3_1
 #define K3_COFFEE_VALVE P3_0
+
+// Temperature safety limits (in decidegrees C: value * 10)
+#define COFFEE_TEMP_MAX (1200)  // 120°C - maximum safe temperature for coffee boiler
+#define STEAM_TEMP_MAX  (1800)  // 180°C - maximum safe temperature for steam boiler
 
 /**
  * @brief Initialize board hardware and peripherals
@@ -177,24 +181,48 @@ void set_pump_power(unsigned char control_value) // n_DAT[10]
 }
 
 /**
- * @brief Set coffee boiler heater power
+ * @brief Set coffee boiler heater power with temperature safety limits
  * @param control_value Desired power level from I2C register n_DAT[11] (0-99)
- * @param current_temp Current temperature (unused, kept for compatibility)
- * @note Sets PWM duty cycle directly without temperature constraints
+ * @param current_temp Current temperature in decidegrees C (e.g., 950 = 95.0°C)
+ * @note Automatically disables heater if temperature exceeds 120°C or sensor fault detected
  */
 void set_coffee_power(unsigned char control_value, unsigned int current_temp) // n_DAT[11]
 {
+	// Safety check: disable heater if temperature exceeds safe limit
+	if (current_temp > COFFEE_TEMP_MAX)
+	{
+		control_value = 0;
+	}
+	
+	// Safety check: disable heater if sensor fault detected
+	if (current_temp == TEMP_ERROR_VALUE)
+	{
+		control_value = 0;
+	}
+
 	PWM_Output(0, 0, control_value, 0); // 0~99 range
 }
 
 /**
- * @brief Set steam boiler heater power
+ * @brief Set steam boiler heater power with temperature safety limits
  * @param control_value Desired power level from I2C register n_DAT[12] (0-99)
- * @param current_temp Current temperature (unused, kept for compatibility)
- * @note Sets PWM duty cycle directly without temperature constraints
+ * @param current_temp Current temperature in decidegrees C (e.g., 1500 = 150.0°C)
+ * @note Automatically disables heater if temperature exceeds 180°C or sensor fault detected
  */
 void set_steam_power(unsigned char control_value, unsigned int current_temp) // n_DAT[12]
 {
+	// Safety check: disable heater if temperature exceeds safe limit
+	if (current_temp > STEAM_TEMP_MAX)
+	{
+		control_value = 0;
+	}
+	
+	// Safety check: disable heater if sensor fault detected
+	if (current_temp == TEMP_ERROR_VALUE)
+	{
+		control_value = 0;
+	}
+
 	PWM_Output(0, control_value, 0, 0); // 0~99 range
 }
 

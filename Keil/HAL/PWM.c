@@ -16,15 +16,21 @@
 #define d_DT1       0x00
 
 #define PWMMD       0x0063        //PWMMD[9:0]=Period (PWM Max Data Register 0~99) - 10Hz
+//unsigned int g_PWMD0 = 0x0200;        //PWMD0[9:0]=Duty (PWM Channel 0 Data Register 0~1023)
+//unsigned int g_PWMD1 = 0x0200;        //PWMD1[9:0]=Duty (PWM Channel 1 Data Register 0~1023)
+//unsigned int g_PWMD2 = 0x0200;        //PWMD2[9:0]=Duty (PWM Channel 2 Data Register 0~1023)
+//unsigned int g_PWMD3 = 0x0200;        //PWMD3[9:0]=Duty (PWM Channel 3 Data Register 0~1023)
 
 void PWM_initialize(void) // Initialize PWM
 {
+    // EA = 0;            // Disable All Interrupt Function
     IEPWM = (d_PWMIE); // Enable PWM Interrupt Function
     PWMMDH = PWMMD >> 8;
     PWMMDL = PWMMD;
     PWMDT0 = (d_DTP0 << 6) | d_DT0;
     PWMDT1 = (d_DTP1 << 6) | d_DT1;
     PWMC2 = (d_PWM3PS << 3) | (d_PWM2PS << 2) | (d_PWM1PS << 1) | (d_PWM0PS);
+    // EA     = 1;             //Enable All Interrupt
 }
 
 void PWM_Output(unsigned int PWMD0, unsigned int PWMD1,

@@ -26,6 +26,11 @@ void main(void) //Main Function Start
 void PWM_initialize(void);
 void PWM_Output(unsigned int PWMD0, unsigned int PWMD1,
                 unsigned int PWMD2, unsigned int PWMD3);
+
+void PWM_Output2(unsigned int PWMD2);
+void PWM_Output3(unsigned int PWMD3);
+
+void PWM_Enable(void);
 void PWM_Disable(void);
 void PWM_ISR(void);
 

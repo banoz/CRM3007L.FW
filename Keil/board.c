@@ -76,6 +76,8 @@ void board_initialize(void)
 	EA = 1;
 
 	ADC_Start(2); // poll the buttons first
+	
+	PWM_Enable();
 }
 
 SystemState system_state = {0};
@@ -200,7 +202,7 @@ void set_coffee_power(unsigned char control_value, unsigned int current_temp) //
 		control_value = 0;
 	}
 
-	PWM_Output(0, 0, control_value, 0); // 0~99 range
+	PWM_Output2(control_value); // 0~99 range
 }
 
 /**
@@ -223,7 +225,7 @@ void set_steam_power(unsigned char control_value, unsigned int current_temp) // 
 		control_value = 0;
 	}
 
-	PWM_Output(0, control_value, 0, 0); // 0~99 range
+	PWM_Output3(control_value); // 0~99 range
 }
 
 /// PSM (Pulse Skip Modulation) algorithm

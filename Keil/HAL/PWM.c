@@ -3,7 +3,7 @@
 
 #define PWM_VECTOR  8           //PWM Interrupt Vector
 #define d_PWMCS     0x06        //PWMCS[2:0] (PWM clock select 0~7) - Timer0 - 1ms
-#define d_PWMXEN    0x06        //PWM Channel Enable (0~F)
+#define d_PWMXEN    0x0C        //PWM Channel Enable (0~F)
 #define d_PWM0PS    0x00        //PWM0 Channel polarity select
 #define d_PWM1PS    0x00        //PWM1 Channel polarity select
 #define d_PWM2PS    0x00        //PWM2 Channel polarity select
@@ -24,7 +24,6 @@
 void PWM_initialize(void) // Initialize PWM
 {
     // EA = 0;            // Disable All Interrupt Function
-    IEPWM = (d_PWMIE); // Enable PWM Interrupt Function
     PWMMDH = PWMMD >> 8;
     PWMMDL = PWMMD;
     PWMDT0 = (d_DTP0 << 6) | d_DT0;
@@ -61,6 +60,44 @@ void PWM_Output(unsigned int PWMD0, unsigned int PWMD1,
     PWMD2L = (PWMD2);
     PWMD3H = (PWMD3 >> 8);
     PWMD3L = (PWMD3);
+    //PWMC = PWMC | (d_PWMCS << 5) | (d_PWMOMS << 4) | (d_PWMXEN);
+}
+
+void PWM_Output2(unsigned int PWMD2) // PWM Output Set
+{
+    if (PWMD2 > PWMMD)
+    {
+        PWMD2 = PWMMD;
+    }
+		
+    PWMD2H = (PWMD2 >> 8);
+    PWMD2L = (PWMD2);
+}
+
+void PWM_Output3(unsigned int PWMD3) // PWM Output Set
+{
+    if (PWMD3 > PWMMD)
+    {
+        PWMD3 = PWMMD;
+    }
+		
+    PWMD3H = (PWMD3 >> 8);
+    PWMD3L = (PWMD3);
+}
+
+void PWM_Enable(void)
+{
+    IEPWM = (d_PWMIE); // Enable PWM Interrupt Function
+ 
+		PWMD0H = 0;
+    PWMD0L = 0;
+    PWMD1H = 0;
+    PWMD1L = 0;
+    PWMD2H = 0;
+    PWMD2L = 0;
+    PWMD3H = 0;
+    PWMD3L = 0;
+
     PWMC = PWMC | (d_PWMCS << 5) | (d_PWMOMS << 4) | (d_PWMXEN);
 }
 

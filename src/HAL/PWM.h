@@ -32,6 +32,6 @@ void PWM_Output3(unsigned int PWMD3);
 
 void PWM_Enable(void);
 void PWM_Disable(void);
-void PWM_ISR(void);
+//void PWM_ISR(void);
 
 #endif

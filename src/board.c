@@ -26,6 +26,33 @@
 #define COFFEE_TEMP_MAX (1200)  // 120°C - maximum safe temperature for coffee boiler
 #define STEAM_TEMP_MAX  (1800)  // 180°C - maximum safe temperature for steam boiler
 
+SystemState system_state;
+
+/// Pulse Skip Modulation (PSM) for pump control
+// PSM is used to control pump speed by skipping AC half-cycles
+// psm_value: desired pump power (0 to psm_range)
+// psm_range: maximum range (0x7F = 127)
+// psm_counter: counts active pump cycles for monitoring
+
+unsigned char psm_range = 0x7F;  // PSM range: 0-127 (7-bit control)
+unsigned char psm_value = 0;      // Current PSM power setting
+unsigned int psm_counter = 0;     // Count of pump activation cycles
+
+unsigned int psm_a = 0;           // PSM accumulator
+volatile bit zero_crossed = 0;    // Flag set by INT0 on zero-crossing detection
+
+char str_buf[16];
+
+extern unsigned char n_DAT[];
+
+void set_controls(unsigned char);
+void set_valves(unsigned char);
+void set_pump_power(unsigned char);
+void set_coffee_power(unsigned char, unsigned int);
+void set_steam_power(unsigned char, unsigned int);
+unsigned int map_coffee_boiler_temperature(unsigned int);
+unsigned int map_steam_boiler_temperature(unsigned int);
+
 /**
  * @brief Initialize board hardware and peripherals
  * @note Configures GPIO, timers, ADC, I2C, PWM, and external interrupt
@@ -79,30 +106,6 @@ void board_initialize(void)
 	
 	PWM_Enable();
 }
-
-SystemState system_state = {0};
-
-/// Pulse Skip Modulation (PSM) for pump control
-// PSM is used to control pump speed by skipping AC half-cycles
-// psm_value: desired pump power (0 to psm_range)
-// psm_range: maximum range (0x7F = 127)
-// psm_counter: counts active pump cycles for monitoring
-
-unsigned char psm_range = 0x7F;  // PSM range: 0-127 (7-bit control)
-unsigned char psm_value = 0;      // Current PSM power setting
-unsigned int psm_counter = 0;     // Count of pump activation cycles
-
-char str_buf[16];
-
-extern unsigned char n_DAT[];
-
-void set_controls(unsigned char);
-void set_valves(unsigned char);
-void set_pump_power(unsigned char);
-void set_coffee_power(unsigned char, unsigned int);
-void set_steam_power(unsigned char, unsigned int);
-unsigned int map_coffee_boiler_temperature(unsigned int);
-unsigned int map_steam_boiler_temperature(unsigned int);
 
 /**
  * @brief Main control loop tick function - updates sensors and controls outputs
@@ -231,9 +234,6 @@ void set_steam_power(unsigned char control_value, unsigned int current_temp) // 
 /// PSM (Pulse Skip Modulation) algorithm
 // Implements Bresenham-like algorithm to determine if pump should run this cycle
 // Accumulates psm_value each cycle; when it exceeds psm_range, pump activates
-
-unsigned int psm_a = 0;           // PSM accumulator
-volatile bit zero_crossed = 0;    // Flag set by INT0 on zero-crossing detection
 
 /**
  * @brief Calculate whether to skip the current pump cycle

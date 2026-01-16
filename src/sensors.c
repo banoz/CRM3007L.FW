@@ -51,7 +51,7 @@ unsigned int map_coffee_boiler_temperature(unsigned int adc_value)
 	}
 	
 	// Calculate temperature using NTC formula
-	temp = COFFEE_NTC_A + (COFFEE_NTC_B * log((float)adc_value));
+	temp = COFFEE_NTC_A + (COFFEE_NTC_B * logf((float)adc_value));
 	
 	// Validate temperature range (0°C to 250°C)
 	if (temp < 0)
@@ -73,7 +73,7 @@ unsigned int map_steam_boiler_temperature(unsigned int adc_value)
 	}
 	
 	// Calculate temperature using NTC formula
-	temp = STEAM_NTC_A + (STEAM_NTC_B * log((float)adc_value));
+	temp = STEAM_NTC_A + (STEAM_NTC_B * logf((float)adc_value));
 	
 	// Validate temperature range (0°C to 250°C)
 	if (temp < 0)
@@ -109,7 +109,7 @@ MultiSwitchState get_multi_switch(unsigned int value)
  * @note Reads ADC values and converts to appropriate units/states
  * @note Updates coffee/steam NTC values, multi-switch state, and steam switch state
  */
-void sensors_update()
+void sensors_update(void)
 {
 	system_state.coffee.ntc_value = adc_values[0];				 // ADC0: P0.4
 	system_state.steam.ntc_value = adc_values[1];				 // ADC1: P0.5

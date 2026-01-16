@@ -1,6 +1,8 @@
 #ifndef __BOARD_H__
 #define __BOARD_H__
 
+#define goToISP() __asm__("ljmp 0x3c80")
+
 // I2C Register Map (n_DAT array indices)
 // READ Registers (Master reads from slave):
 #define REG_SWITCHES         0   // [7:4] steam_switch, [3:0] multi_switch state

@@ -4,16 +4,18 @@
 #include "HAL\WDT.h"
 #include "board.h"
 
+//#include "HAL\PWM.h"
+
 #define TICK_INTERVAL_MS 30  // Main control loop interval in milliseconds
 
-void delay(unsigned long cnt)
-{
-	while (cnt--)
-		;
-}
+void IIC_interrupt(void) interrupt d_IIC_Vector;
+void PWM_ISR(void) interrupt d_PWM_Vector;
+void UART_ISR(void) interrupt d_UART_Vector;
 
 unsigned long nextTick = 0;
 unsigned long lastTick = 0;
+
+unsigned int cntr1 = 0;
 
 void main(void)
 {
@@ -31,6 +33,10 @@ void main(void)
 
 			board_tick();
 
+//			PWM_Output2(cntr1);
+			
+			if (cntr1++ > 0x0063) cntr1 = 0;
+			
 			WDTR_CountClear();
 		}
 
@@ -39,7 +45,7 @@ void main(void)
 			lastTick = getTick();
 			check_zc();
 		}
-
-		delay(1UL);
 	}
+
+	goToISP();
 }

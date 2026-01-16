@@ -1,5 +1,3 @@
 {
-    "files.associations": {
-        "timer.h": "c"
-    }
+    "cmake.buildTask": true
 }

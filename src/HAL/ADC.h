@@ -16,7 +16,7 @@ void main(void)
 
 void         ADC_Start(unsigned char n_ADC_CH);
 void         ADC_Init(void);
-unsigned int ADC_Read12();
+unsigned int ADC_Read12(void);
 void         ADC(void);
 
 //===============================

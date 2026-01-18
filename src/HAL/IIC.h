@@ -18,6 +18,6 @@ void main(void)
 
 */
 
-void IIC_init_slave();
+void IIC_init_slave(void);
 
 #endif

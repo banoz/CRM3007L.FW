@@ -15,14 +15,14 @@
 #define d_SAVE_DATA         20
 //=====================================================================
 
-unsigned char n_RW          = d_null;
-unsigned char n_Addr        = d_null;
-unsigned char n_Next_Step   = d_null;
+volatile unsigned char n_RW          = d_null;
+volatile unsigned char n_Addr        = d_null;
+volatile unsigned char n_Next_Step   = d_null;
 volatile unsigned char n_DAT[16] = {0};
 
 //=====================================================================
 
-void IIC_interrupt() interrupt d_IIC_Vector
+void IIC_ISR(void) interrupt d_IIC_Vector
 {	
 	if(RXIF)
 	{
@@ -70,7 +70,7 @@ void IIC_interrupt() interrupt d_IIC_Vector
 
 }
 
-void IIC_init_slave()
+void IIC_init_slave(void)
 {
     IICS    = 0x00;             // init IICS
     IRCON   = 0x00;             // init IRCON

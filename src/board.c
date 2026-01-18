@@ -23,8 +23,8 @@
 #define K3_COFFEE_VALVE P3_0
 
 // Temperature safety limits (in decidegrees C: value * 10)
-#define COFFEE_TEMP_MAX (1200)  // 120°C - maximum safe temperature for coffee boiler
-#define STEAM_TEMP_MAX  (1800)  // 180°C - maximum safe temperature for steam boiler
+#define COFFEE_TEMP_MAX (1200) // 120°C - maximum safe temperature for coffee boiler
+#define STEAM_TEMP_MAX (1800)  // 180°C - maximum safe temperature for steam boiler
 
 SystemState system_state;
 
@@ -34,12 +34,12 @@ SystemState system_state;
 // psm_range: maximum range (0x7F = 127)
 // psm_counter: counts active pump cycles for monitoring
 
-unsigned char psm_range = 0x7F;  // PSM range: 0-127 (7-bit control)
-unsigned char psm_value = 0;      // Current PSM power setting
-unsigned int psm_counter = 0;     // Count of pump activation cycles
+unsigned char psm_range = 0x7F; // PSM range: 0-127 (7-bit control)
+unsigned char psm_value = 0;	// Current PSM power setting
+unsigned int psm_counter = 0;	// Count of pump activation cycles
 
-unsigned int psm_a = 0;           // PSM accumulator
-volatile bit zero_crossed = 0;    // Flag set by INT0 on zero-crossing detection
+unsigned int psm_a = 0;		   // PSM accumulator
+volatile bit zero_crossed = 0; // Flag set by INT0 on zero-crossing detection
 
 char str_buf[16];
 
@@ -85,6 +85,17 @@ void board_initialize(void)
 
 	EA = 0;
 
+	P0_2 = 1;
+	P0_3 = 1;
+	P2_3 = 1;
+	if (P0_6)
+	{
+		goToISP();
+	}
+	P0_2 = 0;
+	P0_3 = 0;
+	P2_3 = 0;
+
 	// Timer init
 	TIMER0_initialize();
 	TR0 = 1;
@@ -103,7 +114,7 @@ void board_initialize(void)
 	EA = 1;
 
 	ADC_Start(2); // poll the buttons first
-	
+
 	PWM_Enable();
 }
 
@@ -198,7 +209,7 @@ void set_coffee_power(unsigned char control_value, unsigned int current_temp) //
 	{
 		control_value = 0;
 	}
-	
+
 	// Safety check: disable heater if sensor fault detected
 	if (current_temp == TEMP_ERROR_VALUE)
 	{
@@ -221,7 +232,7 @@ void set_steam_power(unsigned char control_value, unsigned int current_temp) // 
 	{
 		control_value = 0;
 	}
-	
+
 	// Safety check: disable heater if sensor fault detected
 	if (current_temp == TEMP_ERROR_VALUE)
 	{
@@ -291,7 +302,7 @@ void check_zc(void)
  * @note Sets zero_crossed flag to signal main loop that zero-crossing occurred
  * @note Triggered by P1.3 (Z-C input) on falling edge
  */
-void INT0Interrupt(void) interrupt d_INT0_Vector
+void INT0_ISR(void) interrupt d_INT0_Vector
 {
 	zero_crossed = 1;
 	IE0 = 0;

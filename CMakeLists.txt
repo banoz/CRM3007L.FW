@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.20)
 # Set toolchain before project
 set(CMAKE_TOOLCHAIN_FILE ${CMAKE_SOURCE_DIR}/cmake/sdcc-toolchain.cmake)
 
-project(OB38R16T1_Firmware C)
+project(CRM3007L C)
 
 # Output directories
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
@@ -36,6 +36,12 @@ target_compile_options(firmware PRIVATE
     -mmcs51
     --model-small
     --stack-auto
+)
+
+# Compiler definitions
+target_compile_definitions(firmware PRIVATE
+    MCS51REG_ENABLE_WARNINGS
+    MICROCONTROLLER_DEFINED
 )
 
 target_link_options(firmware PRIVATE

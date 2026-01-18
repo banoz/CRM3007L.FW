@@ -8,8 +8,11 @@
 
 #define TICK_INTERVAL_MS 30  // Main control loop interval in milliseconds
 
-void IIC_interrupt(void) interrupt d_IIC_Vector;
+void ADC_ISR(void) interrupt d_ADC_Vector;
+void IIC_ISR(void) interrupt d_IIC_Vector;
+void INT0_ISR(void) interrupt d_INT0_Vector;
 void PWM_ISR(void) interrupt d_PWM_Vector;
+void TIMER0_ISR(void) interrupt d_T0_Vector;
 void UART_ISR(void) interrupt d_UART_Vector;
 
 unsigned long nextTick = 0;
@@ -33,10 +36,11 @@ void main(void)
 
 			board_tick();
 
-//			PWM_Output2(cntr1);
-			
-			if (cntr1++ > 0x0063) cntr1 = 0;
-			
+			//			PWM_Output2(cntr1);
+
+			if (cntr1++ > 0x0063)
+				cntr1 = 0;
+
 			WDTR_CountClear();
 		}
 

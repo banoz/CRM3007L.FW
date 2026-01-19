@@ -19,5 +19,6 @@ void main(void)
 */
 
 void IIC_init_slave(void);
+void IIC_get_stats(unsigned int *rx_count, unsigned int *tx_count, unsigned int *nack_count);
 
 #endif

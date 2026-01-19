@@ -60,6 +60,8 @@ void board_tick(void);
 
 void check_zc(void);
 
+void board_emergency_shutdown(void);
+
 extern SystemState system_state;
 
 #endif

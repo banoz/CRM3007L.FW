@@ -19,6 +19,7 @@ include_directories(
 set(SOURCES
     src/main.c
     src/board.c
+    src/pid.c
     src/sensors.c
     src/HAL/ADC.c
     src/HAL/IIC.c

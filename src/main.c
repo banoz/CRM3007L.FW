@@ -3,8 +3,9 @@
 #include "HAL\UART.h"
 #include "HAL\WDT.h"
 #include "board.h"
+#include "pid.h"
 
-//#include "HAL\PWM.h"
+#include "HAL\PWM.h"
 
 #define TICK_INTERVAL_MS 30  // Main control loop interval in milliseconds
 
@@ -36,11 +37,14 @@ void main(void)
 
 			board_tick();
 
-			//			PWM_Output2(cntr1);
+			pid_tick();
 
-			if (cntr1++ > 0x0063)
+			//PWM_Output2(cntr1);
+
+			if (cntr1++ > 0x0063) {
 				cntr1 = 0;
-
+				P0_1 = !P0_1;
+			}
 			WDTR_CountClear();
 		}
 

@@ -2,7 +2,7 @@
 #include "PWM.h"
 
 #define PWM_VECTOR  (8)         //PWM Interrupt Vector
-#define d_PWMCS     0x05        //PWMCS[2:0] (PWM clock select 0~7) - Timer0 - 1ms
+#define d_PWMCS     0x06        //PWMCS[2:0] (PWM clock select 0~7) - Timer0 - 1ms
 #define d_PWMXEN    0x0C        //PWM Channel Enable (0~F)
 #define d_PWM0PS    0x00        //PWM0 Channel polarity select
 #define d_PWM1PS    0x00        //PWM1 Channel polarity select

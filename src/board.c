@@ -259,6 +259,8 @@ void set_steam_power(unsigned char control_value, unsigned int current_temp) // 
 /**
  * @brief Calculate whether to skip the current pump cycle
  * @note Called on each AC zero-crossing to implement PSM control
+ * @note PUMP is active LOW: 0 = pump on, 1 = pump off
+ * @note psm_skip: 0 = run pump this cycle, 1 = skip this cycle
  */
 void calculateSkip(void)
 {
@@ -269,25 +271,25 @@ void calculateSkip(void)
 	if (psm_a >= psm_range)
 	{
 		psm_a -= psm_range;
-		psm_skip = 0;
+		psm_skip = 0;  // Run pump this cycle
 	}
 	else
 	{
-		psm_skip = 1;
+		psm_skip = 1;  // Skip pump this cycle
 	}
 
 	if (psm_a > psm_range)
 	{
 		psm_a = 0;
-		psm_skip = 0;
+		psm_skip = 0;  // Run pump this cycle
 	}
 
 	if (!psm_skip)
 	{
-		psm_counter++;
+		psm_counter++;  // Count active pump cycles
 	}
 
-	PUMP = psm_skip;
+	PUMP = psm_skip;  // PUMP active low: 0 = on, 1 = off
 }
 
 /**
@@ -336,8 +338,8 @@ void board_emergency_shutdown(void)
 	PWM_Output2(0);  // Coffee heater off
 	PWM_Output3(0);  // Steam heater off
 	
-	// Disable pump
-	PUMP = 1;  // Pump off (assuming active low)
+	// Disable pump (active low - 1 = off, 0 = on)
+	PUMP = 1;
 	
 	// Close all valves
 	K3_COFFEE_VALVE = 0;

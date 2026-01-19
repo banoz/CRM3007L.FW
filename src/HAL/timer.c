@@ -3,8 +3,10 @@
 #define d_T0MOD        0x01 //TMOD[3:0] TIMER0 Mode setting
 #define d_T1MOD        0x00 //TMOD[7:4] TIMER1 Mode setting
 
-#define d_MODEVALUE_T0      65536     //MODE1 16bit 65536
-#define d_RELOADVALUE_T0    1310      //Reload value to get 1 ms tick
+// Timer0 configuration for 1ms tick generation
+// Based on crystal frequency and prescaler settings
+#define d_MODEVALUE_T0      65536     // MODE1 16bit counter maximum
+#define d_RELOADVALUE_T0    1310      // Reload value calculated for 1ms tick @ 16MHz
 
 unsigned long halTick = 0;
 

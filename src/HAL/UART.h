@@ -16,11 +16,10 @@ void main(void)
 }
 */
 
-//bit uart_rx_overflow(void);        // Flag for buffer overflow (optional handling)
-
 bit uart_rx_ready(void);
-// Get one byte from RX buffer (call only if ready; blocks not, assumes checked)
 unsigned char uart_getchar(void);
+unsigned char uart_get_overflow_count(void);  // Get count of dropped bytes
+void uart_clear_overflow_count(void);          // Reset overflow counter
 
 void UART_TX(unsigned char n_temp0);
 void init_UART(void);

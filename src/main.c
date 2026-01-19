@@ -4,9 +4,8 @@
 #include "HAL\WDT.h"
 #include "board.h"
 
-//#include "HAL\PWM.h"
-
 #define TICK_INTERVAL_MS 30  // Main control loop interval in milliseconds
+#define COUNTER_MAX 99       // Maximum counter value for periodic operations
 
 void ADC_ISR(void) interrupt d_ADC_Vector;
 void IIC_ISR(void) interrupt d_IIC_Vector;
@@ -36,9 +35,7 @@ void main(void)
 
 			board_tick();
 
-			//			PWM_Output2(cntr1);
-
-			if (cntr1++ > 0x0063)
+			if (cntr1++ > COUNTER_MAX)
 				cntr1 = 0;
 
 			WDTR_CountClear();

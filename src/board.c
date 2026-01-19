@@ -26,6 +26,19 @@
 #define COFFEE_TEMP_MAX (1200) // 120°C - maximum safe temperature for coffee boiler
 #define STEAM_TEMP_MAX (1800)  // 180°C - maximum safe temperature for steam boiler
 
+// Port configuration constants (for board_initialize)
+#define P0_MODE1_CONFIG 0x71  // P0M1: 0b01110001 - P0.0,P0.4,P0.5,P0.6 as input
+#define P0_MODE0_CONFIG 0x8E  // P0M0: 0b10001110 - P0.1,P0.2,P0.3,P0.7 as output
+#define P1_MODE1_CONFIG 0xC2  // P1M1: 0b11000010 - P1.1,P1.6,P1.7 push-pull
+#define P1_MODE0_CONFIG 0xC2  // P1M0: 0b11000010
+#define P2_MODE1_CONFIG 0x00  // P2M1: 0x00
+#define P2_MODE0_CONFIG 0x08  // P2M0: 0b00001000 - P2.3 as output
+#define P3_MODE1_CONFIG 0x00  // P3M1: 0x00
+#define P3_MODE0_CONFIG 0x0F  // P3M0: 0b00001111 - P3.0-P3.3 as output
+
+// PSM (Pulse Skip Modulation) constants
+#define PSM_RANGE_MAX 0x7F    // PSM range: 0-127 (7-bit control for pump power)
+
 SystemState system_state;
 
 /// Pulse Skip Modulation (PSM) for pump control
@@ -34,9 +47,9 @@ SystemState system_state;
 // psm_range: maximum range (0x7F = 127)
 // psm_counter: counts active pump cycles for monitoring
 
-unsigned char psm_range = 0x7F; // PSM range: 0-127 (7-bit control)
-unsigned char psm_value = 0;	// Current PSM power setting
-unsigned int psm_counter = 0;	// Count of pump activation cycles
+unsigned char psm_range = PSM_RANGE_MAX; // PSM range: 0-127 (7-bit control)
+unsigned char psm_value = 0;             // Current PSM power setting
+unsigned int psm_counter = 0;            // Count of pump activation cycles
 
 unsigned int psm_a = 0;		   // PSM accumulator
 volatile bit zero_crossed = 0; // Flag set by INT0 on zero-crossing detection
@@ -60,18 +73,15 @@ unsigned int map_steam_boiler_temperature(unsigned int);
  */
 void board_initialize(void)
 {
-	// P0M1 = 0b01110001 (0x71), P0M0 = 0b10001110 (0x8E)
-	P0M1 = 0x71;
-	P0M0 = 0x8E;
-	// P1M1 = 0b11000010 (0xC2), P1M0 = 0b11000010 (0xC2)
-	P1M1 = 0xC2;
-	P1M0 = 0xC2;
-	// P2M1 = 0x00, P2M0 = 0b00001000 (0x08)
-	P2M1 = 0x00;
-	P2M0 = 0x08;
-	// P3M1 = 0x00, P3M0 = 0b00001111 (0x0F)
-	P3M1 = 0x00;
-	P3M0 = 0x0F;
+	// Configure port modes using named constants
+	P0M1 = P0_MODE1_CONFIG;
+	P0M0 = P0_MODE0_CONFIG;
+	P1M1 = P1_MODE1_CONFIG;
+	P1M0 = P1_MODE0_CONFIG;
+	P2M1 = P2_MODE1_CONFIG;
+	P2M0 = P2_MODE0_CONFIG;
+	P3M1 = P3_MODE1_CONFIG;
+	P3M0 = P3_MODE0_CONFIG;
 
 	// Optional: Initialize outputs to safe state (off, assuming active high)
 	P0 &= ~0x0E; // Clear P0.1,0.2,0.3 (LEDs off)
@@ -284,16 +294,23 @@ void calculateSkip(void)
  * @brief Check and handle AC zero-crossing events
  * @note Called from main loop to process zero_crossed flag set by INT0 ISR
  * @note Triggers ADC polling and PSM calculation on each zero-crossing
+ * @note Uses atomic operation to prevent race condition with ISR
  */
 void check_zc(void)
 {
+	// Atomic check and clear of zero_crossed flag to prevent race condition
+	EA = 0; // Disable interrupts
 	if (zero_crossed)
 	{
-		ADC_poll();
-
-		calculateSkip();
-
 		zero_crossed = 0;
+		EA = 1; // Re-enable interrupts
+		
+		ADC_poll();
+		calculateSkip();
+	}
+	else
+	{
+		EA = 1; // Re-enable interrupts
 	}
 }
 
@@ -306,4 +323,30 @@ void INT0_ISR(void) interrupt d_INT0_Vector
 {
 	zero_crossed = 1;
 	IE0 = 0;
+}
+
+/**
+ * @brief Emergency shutdown - disable all heaters, pump, and valves
+ * @note Call this function on critical errors (sensor faults, overtemperature, etc.)
+ * @note Disables all outputs to safe state
+ */
+void board_emergency_shutdown(void)
+{
+	// Disable all heaters
+	PWM_Output2(0);  // Coffee heater off
+	PWM_Output3(0);  // Steam heater off
+	
+	// Disable pump
+	PUMP = 1;  // Pump off (assuming active low)
+	
+	// Close all valves
+	K3_COFFEE_VALVE = 0;
+	K2_STEAM_VALVE = 0;
+	K1_3WV = 0;
+	
+	// Turn off buzzer
+	BUZZER = 0;
+	
+	// Optional: Set status LED to indicate error state
+	STATUS_LED = 1;  // Indicate error
 }

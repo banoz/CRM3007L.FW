@@ -17,6 +17,7 @@ bit bU0TX = 0;
 unsigned char rx_buf[RX_BUF_SIZE];
 unsigned char rx_head = 0;  // Write index (ISR updates)
 unsigned char rx_tail = 0;  // Read index (main/app reads)
+unsigned char rx_overflow_count = 0;  // Count of dropped bytes due to buffer full
 
 //=========================================================================
 void init_UART(void)
@@ -42,6 +43,16 @@ unsigned char uart_getchar(void) {
     return data1;
 }
 
+// Get UART RX buffer overflow count
+unsigned char uart_get_overflow_count(void) {
+    return rx_overflow_count;
+}
+
+// Reset UART RX buffer overflow counter
+void uart_clear_overflow_count(void) {
+    rx_overflow_count = 0;
+}
+
 void UART_ISR(void) interrupt d_UART_Vector
 {
     unsigned char RXBUF0;
@@ -57,6 +68,8 @@ void UART_ISR(void) interrupt d_UART_Vector
 				if (next_head != rx_tail) {  // Buffer not full
             rx_buf[rx_head] = RXBUF0; // Store received byte
             rx_head = next_head;     // Advance head
+        } else {
+            rx_overflow_count++;     // Track dropped bytes
         }
     }
     else                        // INT_TX

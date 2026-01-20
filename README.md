@@ -15,8 +15,8 @@ OB38R16T1W28SP
 | P1.0 | PCB-C.4   |                                      |           |     |      |
 | P1.1 | PUMP      |                                      |           |  O  | PWM1 |
 | P1.3 | Z-C       |                                      |           |  I  | INT0 |
-| P1.6 | H2        | STEAM BOILER                         |           |  O  | PWM2 |
-| P1.7 | H1        | COFFEE BOILER                        |           |  O  | PWM3 |
+| P1.6 | H2        | COFFEE BOILER                        |           |  O  | PWM2 |
+| P1.7 | H1        | STEAM BOILER                         |           |  O  | PWM3 |
 | P2.3 | PCB-C.5   |                                      |           |  O  |      |
 | P2.5 | PCB-D.TX  |                                      |           |     | TX_1 |
 | P2.6 | PCB-D.RX  |                                      |           |     | RX_1 |

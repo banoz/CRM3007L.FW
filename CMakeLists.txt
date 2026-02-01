@@ -54,3 +54,15 @@ target_link_options(firmware PRIVATE
 message(STATUS "Building for OB38R16T1 MCU using SDCC")
 message(STATUS "Target: 16KB Flash, 256B RAM, 512B SRAM")
 message(STATUS "Output: ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/firmware.ihx")
+
+# Custom command to display memory usage after build
+add_custom_command(TARGET firmware POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E echo ""
+    COMMAND ${CMAKE_COMMAND} -E echo "========================================"
+    COMMAND ${CMAKE_COMMAND} -E echo "       MEMORY USAGE STATISTICS"
+    COMMAND ${CMAKE_COMMAND} -E echo "========================================"
+    COMMAND ${CMAKE_COMMAND} -E cat ${CMAKE_BINARY_DIR}/firmware.mem
+    COMMAND ${CMAKE_COMMAND} -E echo "========================================"
+    COMMENT "Displaying memory usage statistics"
+    VERBATIM
+)

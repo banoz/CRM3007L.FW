@@ -73,12 +73,13 @@ void IIC_ISR(void) interrupt d_IIC_Vector
 void IIC_init_slave(void)
 {
     IICS    = 0x00;             // init IICS
-    IRCON   = 0x00;             // init IRCON
+    //IRCON   = 0x00;             // init IRCON
     IICEBT  = d_CMD_RW;         // IIC bus ready
     IICA1   = d_IIC_Adress_1;   // Control Byte 1
     IICA2   = d_IIC_Adress_2;   // Control Byte 2
-    IEN1   |= 0x20;             // Enable interrupt IIC
-    IEN0   |= 0x80;             // Enable interrupt All
+    IEIIC   = 1;              	// Enable IIC interrupt
+	//IEN1   |= 0x20;             // Enable interrupt IIC
+    //IEN0   |= 0x80;             // Enable interrupt All
     IICCTL  = 0x80;             // Enable IIC module, slave mode, use IICA1
 }
 

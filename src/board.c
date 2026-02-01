@@ -5,6 +5,7 @@
 #include "HAL\IIC.h"
 #include "HAL\PWM.h"
 #include "HAL\timer.h"
+#include "HAL\UART.h"
 #include <stdlib.h> // For atoi, _itoa, etc.
 #include <stdio.h>	// For sprintf
 
@@ -26,7 +27,15 @@
 #define COFFEE_TEMP_MAX (1200) // 120°C - maximum safe temperature for coffee boiler
 #define STEAM_TEMP_MAX (1800)  // 180°C - maximum safe temperature for steam boiler
 
-SystemState system_state;
+typedef struct psm_state
+{
+	unsigned int psm_a;		  // PSM accumulator
+	unsigned char psm_range;  // PSM range: 0-127 (7-bit control)
+	unsigned char psm_value;  // Current PSM power setting
+	unsigned int psm_counter; // Count of pump activation cycles
+} psm_state;
+
+__xdata SystemState system_state;
 
 /// Pulse Skip Modulation (PSM) for pump control
 // PSM is used to control pump speed by skipping AC half-cycles
@@ -34,14 +43,10 @@ SystemState system_state;
 // psm_range: maximum range (0x7F = 127)
 // psm_counter: counts active pump cycles for monitoring
 
-unsigned char psm_range = 0x7F; // PSM range: 0-127 (7-bit control)
-unsigned char psm_value = 0;	// Current PSM power setting
-unsigned int psm_counter = 0;	// Count of pump activation cycles
+__xdata psm_state pump_psm = {0, 0x7F, 0, 0};		   // Pump PSM (0-127)
+__xdata psm_state coffee_boiler_psm = {0, 0x7F, 0, 0}; // Coffee boiler PSM (0-127)
 
-unsigned int psm_a = 0;		   // PSM accumulator
 volatile bit zero_crossed = 0; // Flag set by INT0 on zero-crossing detection
-
-char str_buf[16];
 
 extern unsigned char n_DAT[];
 
@@ -105,17 +110,20 @@ void board_initialize(void)
 
 	IIC_init_slave();
 
-	PWM_initialize();
+	// PWM_initialize();
+
+	// init_UART();
 
 	// INT0 init
-	IT0 = 1;
+	IT0 = 1;	   // Edge triggered
+	ENHIT |= 0x02; // Both rising and falling edge enable for INT0
 	EX0 = 1;
 
 	EA = 1;
 
 	ADC_Start(2); // poll the buttons first
 
-	PWM_Enable();
+	// PWM_Enable();
 }
 
 /**
@@ -125,10 +133,10 @@ void board_initialize(void)
  */
 void board_tick(void)
 {
+	sensors_update();
+
 	unsigned int coffee_temp = 0; // degree C * 10
 	unsigned int steam_temp = 0;  // degree C * 10
-
-	sensors_update();
 
 	coffee_temp = map_coffee_boiler_temperature(system_state.coffee.ntc_value);
 	steam_temp = map_steam_boiler_temperature(system_state.steam.ntc_value);
@@ -141,7 +149,7 @@ void board_tick(void)
 	n_DAT[3] = steam_temp & 0xFF;
 	n_DAT[4] = steam_temp >> 8;
 
-	n_DAT[6] = psm_counter & 0xFF;
+	n_DAT[6] = pump_psm.psm_counter & 0xFF;
 
 	set_controls(n_DAT[8]);					  // n_DAT[8]
 	set_valves(n_DAT[9]);					  // n_DAT[9]
@@ -165,7 +173,7 @@ void set_controls(unsigned char control_value) // n_DAT[8]
 
 	if ((control_value >> 7) & 0x01)
 	{
-		psm_counter = 0;
+		pump_psm.psm_counter = 0;
 	}
 }
 
@@ -188,12 +196,12 @@ void set_valves(unsigned char control_value) // n_DAT[9]
  */
 void set_pump_power(unsigned char control_value) // n_DAT[10]
 {
-	if (control_value > psm_range)
+	if (control_value > pump_psm.psm_range)
 	{
-		control_value = psm_range;
+		control_value = pump_psm.psm_range;
 	}
 
-	psm_value = control_value;
+	pump_psm.psm_value = control_value;
 }
 
 /**
@@ -216,7 +224,7 @@ void set_coffee_power(unsigned char control_value, unsigned int current_temp) //
 		control_value = 0;
 	}
 
-	PWM_Output2(control_value); // 0~99 range
+	coffee_boiler_psm.psm_value = control_value; // 0~127 range
 }
 
 /**
@@ -239,7 +247,7 @@ void set_steam_power(unsigned char control_value, unsigned int current_temp) // 
 		control_value = 0;
 	}
 
-	PWM_Output3(control_value); // 0~99 range
+	// PWM_Output3(control_value); // 0~99 range
 }
 
 /// PSM (Pulse Skip Modulation) algorithm
@@ -250,15 +258,15 @@ void set_steam_power(unsigned char control_value, unsigned int current_temp) // 
  * @brief Calculate whether to skip the current pump cycle
  * @note Called on each AC zero-crossing to implement PSM control
  */
-void calculateSkip(void)
+bit calculateSkip(psm_state *psm)
 {
 	bit psm_skip = 0;
 
-	psm_a += psm_value;
+	psm->psm_a += psm->psm_value;
 
-	if (psm_a >= psm_range)
+	if (psm->psm_a >= psm->psm_range)
 	{
-		psm_a -= psm_range;
+		psm->psm_a -= psm->psm_range;
 		psm_skip = 0;
 	}
 	else
@@ -266,18 +274,18 @@ void calculateSkip(void)
 		psm_skip = 1;
 	}
 
-	if (psm_a > psm_range)
+	if (psm->psm_a > psm->psm_range)
 	{
-		psm_a = 0;
+		psm->psm_a = 0;
 		psm_skip = 0;
 	}
 
 	if (!psm_skip)
 	{
-		psm_counter++;
+		psm->psm_counter++;
 	}
 
-	PUMP = psm_skip;
+	return psm_skip;
 }
 
 /**
@@ -291,7 +299,8 @@ void check_zc(void)
 	{
 		ADC_poll();
 
-		calculateSkip();
+		PUMP = calculateSkip(&pump_psm);
+		H_COFFEE = calculateSkip(&coffee_boiler_psm);
 
 		zero_crossed = 0;
 	}
@@ -305,5 +314,4 @@ void check_zc(void)
 void INT0_ISR(void) interrupt d_INT0_Vector
 {
 	zero_crossed = 1;
-	IE0 = 0;
 }

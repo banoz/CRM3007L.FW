@@ -60,6 +60,6 @@ void board_tick(void);
 
 void check_zc(void);
 
-extern SystemState system_state;
+extern __xdata SystemState system_state;
 
 #endif

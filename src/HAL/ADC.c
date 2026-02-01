@@ -1,7 +1,7 @@
 #include "OB38R16T1.h"
 #include "ADC.h"
 
-unsigned int n_data    = 0x0000;
+volatile unsigned int n_data    = 0x0000;
 volatile bit ADCfinish = 0;
 
 void ADC_Start(unsigned char n_ADC_CH)

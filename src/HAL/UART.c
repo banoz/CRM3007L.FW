@@ -10,7 +10,7 @@
 //===============================================================
 //GLOBAL VARIABLE
 //===============================================================
-bit bU0TX = 0;
+volatile bit bU0TX = 0;
 
 // Ring buffer for RX: 16 bytes, circular FIFO
 #define RX_BUF_SIZE 16
@@ -23,8 +23,8 @@ void init_UART(void)
 {
     S0RELH   = d_S0RELH;
     S0RELL   = d_S0RELL;
-    AUX     |= 0x80 | 0x10;     // BRS=1, SICS[1:0]=01
-    PCON    |= 0x80;            // SMOD=1
+    AUX     |= 0x80;            // BRGS=1, SICS[1:0]=00
+    //PCON    |= 0x80;            // SMOD=1
     IEN0    |= 0x90;            // EA=1, ES0=1, interrupt enable
     S0CON    = 0x50;            // mode 1, SM20=0, Revice enable
     TI       = 0;

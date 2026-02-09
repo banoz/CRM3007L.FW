@@ -35,7 +35,6 @@ unsigned char pid_tick(unsigned int current_temp, unsigned int setpoint)
 	int error = 0;
 	int derivative = 0;
 	long output = 0;
-	long integral_candidate = 0;
 	long p_term = 0;
 	long i_term = 0;
 	long d_term = 0;
@@ -47,22 +46,21 @@ unsigned char pid_tick(unsigned int current_temp, unsigned int setpoint)
 	}
 
 	error = (int)setpoint - (int)current_temp;
-	integral_candidate = CLAMP_LONG(pid_integral + error, -PID_INTEGRAL_LIMIT, PID_INTEGRAL_LIMIT);
 
 	derivative = error - pid_last_error;
 	pid_last_error = error;
 
 	p_term = (long)n_DAT[REG_PID_KP] * (long)error;
-	i_term = (long)n_DAT[REG_PID_KI] * integral_candidate;
+	i_term = (long)n_DAT[REG_PID_KI] * pid_integral;
 	d_term = (long)n_DAT[REG_PID_KD] * (long)derivative;
 
 	output = (p_term + i_term + d_term) / PID_COEFF_SCALE;
 
-	if ((output <= PID_OUTPUT_MIN && error < 0) ||
-		(output >= PID_OUTPUT_MAX && error > 0))
+	if (!((output <= PID_OUTPUT_MIN && error < 0) ||
+		  (output >= PID_OUTPUT_MAX && error > 0)))
 	{
-		integral_candidate = pid_integral;
-		i_term = (long)n_DAT[REG_PID_KI] * integral_candidate;
+		pid_integral = CLAMP_LONG(pid_integral + error, -PID_INTEGRAL_LIMIT, PID_INTEGRAL_LIMIT);
+		i_term = (long)n_DAT[REG_PID_KI] * pid_integral;
 		output = (p_term + i_term + d_term) / PID_COEFF_SCALE;
 	}
 
@@ -75,7 +73,6 @@ unsigned char pid_tick(unsigned int current_temp, unsigned int setpoint)
 		output = PID_OUTPUT_MAX;
 	}
 
-	pid_integral = integral_candidate;
 	pid_output = (unsigned char)output;
 	return pid_output;
 }

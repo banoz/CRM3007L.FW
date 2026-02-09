@@ -170,6 +170,10 @@ unsigned char resolve_coffee_power(unsigned int current_temp, unsigned int setpo
 	if (setpoint == 0)
 	{
 		pid_reset();
+		if (n_DAT[REG_COFFEE_POWER] > 99)
+		{
+			return 99;
+		}
 		return n_DAT[REG_COFFEE_POWER];
 	}
 
@@ -230,16 +234,11 @@ void set_pump_power(unsigned char control_value) // n_DAT[10]
  */
 void set_coffee_power(unsigned char control_value, unsigned int current_temp) // n_DAT[11]
 {
-	// Safety check: disable heater if temperature exceeds safe limit
-	if (current_temp > COFFEE_TEMP_MAX)
+	// Safety check: disable heater if temperature exceeds safe limit or sensor fault detected
+	if (current_temp > COFFEE_TEMP_MAX || current_temp == TEMP_ERROR_VALUE)
 	{
 		control_value = 0;
-	}
-
-	// Safety check: disable heater if sensor fault detected
-	if (current_temp == TEMP_ERROR_VALUE)
-	{
-		control_value = 0;
+		pid_reset();
 	}
 
 	coffee_boiler_psm.psm_value = control_value; // 0~127 range

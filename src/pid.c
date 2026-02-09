@@ -65,10 +65,20 @@ unsigned char pid_tick(unsigned int current_temp)
 	if (output < PID_OUTPUT_MIN)
 	{
 		output = PID_OUTPUT_MIN;
+		if (error < 0)
+		{
+			pid_integral -= error;
+			pid_integral = CLAMP_LONG(pid_integral, -PID_INTEGRAL_LIMIT, PID_INTEGRAL_LIMIT);
+		}
 	}
 	else if (output > PID_OUTPUT_MAX)
 	{
 		output = PID_OUTPUT_MAX;
+		if (error > 0)
+		{
+			pid_integral -= error;
+			pid_integral = CLAMP_LONG(pid_integral, -PID_INTEGRAL_LIMIT, PID_INTEGRAL_LIMIT);
+		}
 	}
 
 	pid_output = (unsigned char)output;

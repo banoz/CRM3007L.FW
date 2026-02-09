@@ -19,6 +19,14 @@ void pid_initialize(void)
 	n_DAT[REG_PID_KP] = PID_DEFAULT_KP;
 	n_DAT[REG_PID_KI] = PID_DEFAULT_KI;
 	n_DAT[REG_PID_KD] = PID_DEFAULT_KD;
+	pid_reset();
+}
+
+void pid_reset(void)
+{
+	pid_integral = 0;
+	pid_last_error = 0;
+	pid_output = 0;
 }
 
 unsigned char pid_tick(unsigned int current_temp)
@@ -57,9 +65,9 @@ unsigned char pid_tick(unsigned int current_temp)
 	derivative = error - pid_last_error;
 	pid_last_error = error;
 
-	p_term = (long)((int)n_DAT[REG_PID_KP]) * (long)error;
-	i_term = (long)((int)n_DAT[REG_PID_KI]) * pid_integral;
-	d_term = (long)((int)n_DAT[REG_PID_KD]) * (long)derivative;
+	p_term = (long)n_DAT[REG_PID_KP] * (long)error;
+	i_term = (long)n_DAT[REG_PID_KI] * pid_integral;
+	d_term = (long)n_DAT[REG_PID_KD] * (long)derivative;
 
 	output = (p_term + i_term + d_term) / PID_COEFF_SCALE;
 

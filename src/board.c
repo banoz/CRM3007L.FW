@@ -54,6 +54,7 @@ extern unsigned char n_DAT[];
 void set_controls(unsigned char);
 void set_valves(unsigned char);
 void set_pump_power(unsigned char);
+unsigned char get_coffee_power(unsigned int, unsigned int);
 void set_coffee_power(unsigned char, unsigned int);
 void set_steam_power(unsigned char, unsigned int);
 unsigned int map_coffee_boiler_temperature(unsigned int);
@@ -159,9 +160,20 @@ void board_tick(void)
 	set_controls(n_DAT[8]);				 // n_DAT[8]
 	set_valves(n_DAT[9]);				 // n_DAT[9]
 	set_pump_power(n_DAT[10]);			 // n_DAT[10]
-	coffee_power = (coffee_setpoint == 0) ? n_DAT[11] : pid_tick(coffee_temp);
+	coffee_power = get_coffee_power(coffee_temp, coffee_setpoint);
 	set_coffee_power(coffee_power, coffee_temp);
 	set_steam_power(n_DAT[12], steam_temp); // n_DAT[12]
+}
+
+unsigned char get_coffee_power(unsigned int current_temp, unsigned int coffee_setpoint)
+{
+	if (coffee_setpoint == 0)
+	{
+		pid_reset();
+		return n_DAT[REG_COFFEE_POWER];
+	}
+
+	return pid_tick(current_temp);
 }
 
 /**

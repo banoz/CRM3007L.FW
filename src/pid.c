@@ -42,9 +42,7 @@ unsigned char pid_tick(unsigned int current_temp)
 
 	if (current_temp == TEMP_ERROR_VALUE)
 	{
-		pid_integral = 0;
-		pid_last_error = 0;
-		pid_output = 0;
+		pid_reset();
 		return pid_output;
 	}
 

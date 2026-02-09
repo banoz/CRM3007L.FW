@@ -165,9 +165,9 @@ void board_tick(void)
 	set_steam_power(n_DAT[12], steam_temp); // n_DAT[12]
 }
 
-unsigned char calculate_coffee_power(unsigned int current_temp, unsigned int coffee_setpoint)
+unsigned char calculate_coffee_power(unsigned int current_temp, unsigned int setpoint)
 {
-	if (coffee_setpoint == 0)
+	if (setpoint == 0)
 	{
 		pid_reset();
 		return n_DAT[REG_COFFEE_POWER];

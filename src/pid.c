@@ -30,9 +30,8 @@ void pid_reset(void)
 	pid_output = 0;
 }
 
-unsigned char pid_tick(unsigned int current_temp)
+unsigned char pid_tick(unsigned int current_temp, unsigned int setpoint)
 {
-	unsigned int setpoint = 0;
 	int error = 0;
 	int derivative = 0;
 	long output = 0;
@@ -45,9 +44,6 @@ unsigned char pid_tick(unsigned int current_temp)
 		pid_reset();
 		return pid_output;
 	}
-
-	setpoint = (unsigned int)n_DAT[REG_COFFEE_SETPOINT_L] |
-			   ((unsigned int)n_DAT[REG_COFFEE_SETPOINT_H] << 8);
 
 	error = (int)setpoint - (int)current_temp;
 	pid_integral += error;

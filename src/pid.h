@@ -8,4 +8,4 @@
 
 void pid_initialize(void);
 void pid_reset(void);
-unsigned char pid_tick(unsigned int current_temp);
+unsigned char pid_tick(unsigned int current_temp, unsigned int setpoint);

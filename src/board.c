@@ -1,5 +1,6 @@
 #include "OB38R16T1.h"
 #include "board.h"
+#include "pid.h"
 #include "sensors.h"
 #include "HAL\ADC.h"
 #include "HAL\IIC.h"
@@ -137,9 +138,13 @@ void board_tick(void)
 
 	unsigned int coffee_temp = 0; // degree C * 10
 	unsigned int steam_temp = 0;  // degree C * 10
+	unsigned int coffee_setpoint = 0;
+	unsigned char coffee_power = 0;
 
 	coffee_temp = map_coffee_boiler_temperature(system_state.coffee.ntc_value);
 	steam_temp = map_steam_boiler_temperature(system_state.steam.ntc_value);
+	coffee_setpoint = (unsigned int)n_DAT[REG_COFFEE_SETPOINT_L] |
+					  ((unsigned int)n_DAT[REG_COFFEE_SETPOINT_H] << 8);
 
 	// TODO consider implementing IIC mutex
 
@@ -151,11 +156,12 @@ void board_tick(void)
 
 	n_DAT[6] = pump_psm.psm_counter & 0xFF;
 
-	set_controls(n_DAT[8]);					  // n_DAT[8]
-	set_valves(n_DAT[9]);					  // n_DAT[9]
-	set_pump_power(n_DAT[10]);				  // n_DAT[10]
-	set_coffee_power(n_DAT[11], coffee_temp); // n_DAT[11]
-	set_steam_power(n_DAT[12], steam_temp);	  // n_DAT[12]
+	set_controls(n_DAT[8]);				 // n_DAT[8]
+	set_valves(n_DAT[9]);				 // n_DAT[9]
+	set_pump_power(n_DAT[10]);			 // n_DAT[10]
+	coffee_power = (coffee_setpoint == 0) ? n_DAT[11] : pid_tick(coffee_temp);
+	set_coffee_power(coffee_power, coffee_temp);
+	set_steam_power(n_DAT[12], steam_temp); // n_DAT[12]
 }
 
 /**

@@ -17,8 +17,13 @@ This document describes the I2C register map inferred from the provided code sni
 | 0x08   | Controls                     | Write-only (command)| Bitfield (uint8_t)| - Bit 0: Status LED.<br>- Bit 1: Power button LED.<br>- Bit 2: S1 button LED.<br>- Bit 3: S2 button LED.<br>- Bits 4-6: Unused.<br>- Bit 7: Reset PSM counter to 0 if set. |
 | 0x09   | Valves                       | Write-only (command)| Bitfield (uint8_t)| - Bit 0: K3 - Coffee valve.<br>- Bit 1: K2 - Steam valve.<br>- Bit 2: K1 - 3WV.<br>- Bits 3-7: Unused. |
 | 0x0A   | Pump Power                   | Write-only (command)| uint8_t (0-255)  | Sets PSM for pump control. |
-| 0x0B   | Coffee Power                 | Write-only (command)| uint8_t (0-99)   | PWM duty cycle for coffee heater. |
+| 0x0B   | Coffee Power                 | Write-only (command)| uint8_t (0-99)   | Manual power for coffee heater when setpoint is 0. |
 | 0x0C   | Steam Power                  | Write-only (command)| uint8_t (0-99)   | PWM duty cycle for steam heater. |
+| 0x0D   | Coffee Setpoint (Low Byte)   | Write-only (command)| uint8_t          | Low byte of coffee boiler target temperature (°C × 10). Little-endian with 0x0E. |
+| 0x0E   | Coffee Setpoint (High Byte)  | Write-only (command)| uint8_t          | High byte of coffee boiler target temperature. |
+| 0x0F   | PID Kp                       | Write-only (command)| uint8_t          | Proportional gain for coffee PID (scaled by 100). |
+| 0x10   | PID Ki                       | Write-only (command)| uint8_t          | Integral gain for coffee PID (scaled by 100). |
+| 0x11   | PID Kd                       | Write-only (command)| uint8_t          | Derivative gain for coffee PID (scaled by 100). |
 
 ## Additional Notes
 - **I2C Address**: 0x10.

@@ -5,6 +5,7 @@
 #define PID_OUTPUT_MIN (0)
 #define PID_OUTPUT_MAX (0x7F)
 #define PID_INTEGRAL_LIMIT (20000L)
+#define CLAMP_LONG(value, min, max) ((value) < (min) ? (min) : ((value) > (max) ? (max) : (value)))
 
 extern volatile unsigned char n_DAT[];
 
@@ -52,15 +53,7 @@ unsigned char pid_tick(unsigned int current_temp)
 
 	error = (int)setpoint - (int)current_temp;
 	pid_integral += error;
-
-	if (pid_integral > PID_INTEGRAL_LIMIT)
-	{
-		pid_integral = PID_INTEGRAL_LIMIT;
-	}
-	else if (pid_integral < -PID_INTEGRAL_LIMIT)
-	{
-		pid_integral = -PID_INTEGRAL_LIMIT;
-	}
+	pid_integral = CLAMP_LONG(pid_integral, -PID_INTEGRAL_LIMIT, PID_INTEGRAL_LIMIT);
 
 	derivative = error - pid_last_error;
 	pid_last_error = error;

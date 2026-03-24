@@ -27,6 +27,7 @@
 // Temperature safety limits (in decidegrees C: value * 10)
 #define COFFEE_TEMP_MAX (1200) // 120°C - maximum safe temperature for coffee boiler
 #define STEAM_TEMP_MAX (1800)  // 180°C - maximum safe temperature for steam boiler
+#define COFFEE_POWER_MAX (99)
 
 typedef struct psm_state
 {
@@ -144,7 +145,7 @@ void board_tick(void)
 
 	coffee_temp = map_coffee_boiler_temperature(system_state.coffee.ntc_value);
 	steam_temp = map_steam_boiler_temperature(system_state.steam.ntc_value);
-	coffee_setpoint = (unsigned int)n_DAT[REG_COFFEE_SETPOINT] * 10;
+	coffee_setpoint = (unsigned int)n_DAT[REG_COFFEE_SETPOINT] * 10; // °C to decidegrees
 
 	// TODO consider implementing IIC mutex
 
@@ -169,9 +170,9 @@ unsigned char resolve_coffee_power(unsigned int current_temp, unsigned int setpo
 	if (setpoint == 0)
 	{
 		pid_reset();
-		if (n_DAT[REG_COFFEE_POWER] > 99)
+		if (n_DAT[REG_COFFEE_POWER] > COFFEE_POWER_MAX)
 		{
-			return 99;
+			return COFFEE_POWER_MAX;
 		}
 		return n_DAT[REG_COFFEE_POWER];
 	}

@@ -13,6 +13,11 @@ static __xdata long pid_integral = 0;
 static __xdata int pid_last_error = 0;
 static __xdata unsigned char pid_output = 0;
 
+static long pid_compute_output(long p_term, long i_term, long d_term)
+{
+	return (p_term + i_term + d_term) / PID_COEFF_SCALE;
+}
+
 void pid_initialize(void)
 {
 	n_DAT[REG_COFFEE_SETPOINT] = (unsigned char)PID_DEFAULT_SETPOINT;
@@ -37,6 +42,9 @@ unsigned char pid_tick(unsigned int current_temp, unsigned int setpoint)
 	long p_term = 0;
 	long i_term = 0;
 	long d_term = 0;
+	unsigned char saturated_low = 0;
+	unsigned char saturated_high = 0;
+	unsigned char integrate = 0;
 
 	if (current_temp == TEMP_ERROR_VALUE)
 	{
@@ -53,14 +61,16 @@ unsigned char pid_tick(unsigned int current_temp, unsigned int setpoint)
 	i_term = (long)n_DAT[REG_PID_KI] * pid_integral;
 	d_term = (long)n_DAT[REG_PID_KD] * (long)derivative;
 
-	output = (p_term + i_term + d_term) / PID_COEFF_SCALE;
+	output = pid_compute_output(p_term, i_term, d_term);
+	saturated_low = (output <= PID_OUTPUT_MIN);
+	saturated_high = (output >= PID_OUTPUT_MAX);
 
-	if (!((output <= PID_OUTPUT_MIN && error < 0) ||
-		  (output >= PID_OUTPUT_MAX && error > 0)))
+	integrate = !((saturated_low && error < 0) || (saturated_high && error > 0));
+	if (integrate)
 	{
 		pid_integral = CLAMP_LONG(pid_integral + error, -PID_INTEGRAL_LIMIT, PID_INTEGRAL_LIMIT);
 		i_term = (long)n_DAT[REG_PID_KI] * pid_integral;
-		output = (p_term + i_term + d_term) / PID_COEFF_SCALE;
+		output = pid_compute_output(p_term, i_term, d_term);
 	}
 
 	if (output < PID_OUTPUT_MIN)

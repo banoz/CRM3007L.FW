@@ -29,7 +29,7 @@ This document describes the I2C register map inferred from the provided code sni
 - **Endianness**: Little-endian for multi-byte values.
 - **Update**: Registers updated every 10 ms.
 - **Directions**: Status (read) vs. command (write).
-- **Units**: Temperatures in °C × 10; coffee setpoint is °C (0-255).
+- **Units**: Sensor temperatures are in decidegrees Celsius (°C × 10); coffee setpoint is whole °C (0-255).
 - **Example**: 950 represents 95.0°C; setpoint 95 targets 95°C.
 - **Safety limit**: `set_coffee_power()` in `board.c` enforces a 1200 (120°C) cutoff via `COFFEE_TEMP_MAX` after PID output is computed.
 - **PID reset**: when the cutoff trips, the heater is forced off and the PID state is reset.

@@ -235,7 +235,7 @@ void set_pump_power(unsigned char control_value) // n_DAT[10]
 void set_coffee_power(unsigned char control_value, unsigned int current_temp) // n_DAT[11]
 {
 	// Safety check: disable heater if temperature exceeds safe limit or sensor fault detected
-	if (current_temp > COFFEE_TEMP_MAX || current_temp == TEMP_ERROR_VALUE)
+	if (current_temp == TEMP_ERROR_VALUE || current_temp > COFFEE_TEMP_MAX)
 	{
 		control_value = 0;
 		pid_reset();

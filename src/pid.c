@@ -6,6 +6,7 @@
 #define PID_OUTPUT_MAX (COFFEE_POWER_MAX)
 #define PID_INTEGRAL_LIMIT (20000L)
 
+// PID coefficients are sourced from the I2C register bank to avoid extra copies.
 extern volatile unsigned char n_DAT[];
 
 // Store PID state in xdata to preserve limited internal RAM.
@@ -59,7 +60,7 @@ unsigned char pid_tick(unsigned int current_temp, unsigned int setpoint)
 	{
 		// TEMP_ERROR_VALUE (0xFFFF) indicates a sensor fault.
 		pid_reset();
-		return pid_output;
+		return 0;
 	}
 
 	error = (int)setpoint - (int)current_temp;

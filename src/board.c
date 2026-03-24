@@ -172,7 +172,7 @@ unsigned char resolve_coffee_power(unsigned int current_temp, unsigned int setpo
 		return n_DAT[REG_COFFEE_POWER];
 	}
 
-	// Safety cutoff triggers a PID reset in set_coffee_power() when limits are exceeded.
+	// Safety cutoff triggers a PID reset in set_coffee_power() on over-temp or sensor fault.
 	return pid_tick(current_temp, setpoint);
 }
 

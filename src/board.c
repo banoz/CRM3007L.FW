@@ -172,7 +172,7 @@ unsigned char resolve_coffee_power(unsigned int current_temp, unsigned int setpo
 		return n_DAT[REG_COFFEE_POWER];
 	}
 
-	// Safety cutoff and power clamp are enforced in set_coffee_power() using current_temp.
+	// Safety cutoff and PID reset are enforced in set_coffee_power() using current_temp.
 	return pid_tick(current_temp, setpoint);
 }
 

@@ -44,6 +44,7 @@ unsigned char pid_tick(unsigned int current_temp, unsigned int setpoint)
 
 	if (current_temp == TEMP_ERROR_VALUE)
 	{
+		// TEMP_ERROR_VALUE (0xFFFF) indicates a sensor fault.
 		pid_reset();
 		return pid_output;
 	}

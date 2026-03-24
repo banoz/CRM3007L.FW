@@ -222,6 +222,15 @@ void set_pump_power(unsigned char control_value) // n_DAT[10]
 	pump_psm.psm_value = control_value;
 }
 
+static unsigned char clamp_coffee_power(unsigned char value)
+{
+	if (value > COFFEE_POWER_MAX)
+	{
+		return COFFEE_POWER_MAX;
+	}
+	return value;
+}
+
 /**
  * @brief Set coffee boiler heater power with temperature safety limits
  * @param control_value Desired power level from I2C register n_DAT[11] (0-127)
@@ -231,10 +240,7 @@ void set_pump_power(unsigned char control_value) // n_DAT[10]
 void set_coffee_power(unsigned char control_value, unsigned int current_temp) // n_DAT[11]
 {
 	// Clamp manual writes to the shared coffee power range.
-	if (control_value > COFFEE_POWER_MAX)
-	{
-		control_value = COFFEE_POWER_MAX;
-	}
+	control_value = clamp_coffee_power(control_value);
 
 	// Safety check: disable heater if temperature exceeds safe limit or sensor fault detected (TEMP_ERROR_VALUE = 0xFFFF).
 	if (current_temp == TEMP_ERROR_VALUE || current_temp > COFFEE_TEMP_MAX)

@@ -8,6 +8,7 @@
 
 extern volatile unsigned char n_DAT[];
 
+// Store PID state in xdata to preserve limited internal RAM.
 static __xdata long pid_integral = 0;
 static __xdata int pid_last_error = 0;
 static __xdata unsigned char pid_output = 0;

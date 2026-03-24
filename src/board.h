@@ -24,6 +24,7 @@
 #define REG_PID_KI           15  // Coffee PID integral gain (scaled)
 #define REG_PID_KD           16  // Coffee PID derivative gain (scaled)
 
+#define DECIDEGREES_PER_DEGREE (10)
 #define COFFEE_POWER_MAX (0x7F)
 
 // Enum for multi-switch detection (based on resistor values for analog read)

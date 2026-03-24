@@ -5,13 +5,25 @@
 #define PID_OUTPUT_MIN (0)
 #define PID_OUTPUT_MAX (COFFEE_POWER_MAX)
 #define PID_INTEGRAL_LIMIT (20000L)
-#define CLAMP_LONG(value, min, max) ((value) < (min) ? (min) : ((value) > (max) ? (max) : (value)))
 
 extern volatile unsigned char n_DAT[];
 
 static __xdata long pid_integral = 0;
 static __xdata int pid_last_error = 0;
 static __xdata unsigned char pid_output = 0;
+
+static long clamp_long(long value, long min_value, long max_value)
+{
+	if (value < min_value)
+	{
+		return min_value;
+	}
+	if (value > max_value)
+	{
+		return max_value;
+	}
+	return value;
+}
 
 void pid_initialize(void)
 {
@@ -65,7 +77,7 @@ unsigned char pid_tick(unsigned int current_temp, unsigned int setpoint)
 	integrate = !((saturated_low && error < 0) || (saturated_high && error > 0));
 	if (integrate)
 	{
-		pid_integral = CLAMP_LONG(pid_integral + error, -PID_INTEGRAL_LIMIT, PID_INTEGRAL_LIMIT);
+		pid_integral = clamp_long(pid_integral + error, -PID_INTEGRAL_LIMIT, PID_INTEGRAL_LIMIT);
 		i_term = (long)n_DAT[REG_PID_KI] * pid_integral;
 		output_sum = p_term + i_term + d_term;
 	}

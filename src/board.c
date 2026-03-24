@@ -27,7 +27,7 @@
 // Temperature safety limits (in decidegrees C: value * 10)
 #define COFFEE_TEMP_MAX (1200) // 120°C - maximum safe temperature for coffee boiler
 #define STEAM_TEMP_MAX (1800)  // 180°C - maximum safe temperature for steam boiler
-#define COFFEE_POWER_MAX (99)
+#define COFFEE_POWER_MAX (0x7F)
 
 typedef struct psm_state
 {
@@ -225,7 +225,7 @@ void set_pump_power(unsigned char control_value) // n_DAT[10]
 
 /**
  * @brief Set coffee boiler heater power with temperature safety limits
- * @param control_value Desired power level from I2C register n_DAT[11] (0-99)
+ * @param control_value Desired power level from I2C register n_DAT[11] (0-127)
  * @param current_temp Current temperature in decidegrees C (e.g., 950 = 95.0°C)
  * @note Automatically disables heater if temperature exceeds 120°C or sensor fault detected
  */

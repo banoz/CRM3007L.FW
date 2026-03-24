@@ -3,7 +3,7 @@
 #include "sensors.h"
 
 #define PID_OUTPUT_MIN (0)
-#define PID_OUTPUT_MAX (99)
+#define PID_OUTPUT_MAX (0x7F)
 #define PID_INTEGRAL_LIMIT (20000L)
 #define CLAMP_LONG(value, min, max) ((value) < (min) ? (min) : ((value) > (max) ? (max) : (value)))
 

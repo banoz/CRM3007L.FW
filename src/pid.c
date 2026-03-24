@@ -15,8 +15,7 @@ static __xdata unsigned char pid_output = 0;
 
 void pid_initialize(void)
 {
-	n_DAT[REG_COFFEE_SETPOINT_L] = (unsigned char)(PID_DEFAULT_SETPOINT & 0xFF);
-	n_DAT[REG_COFFEE_SETPOINT_H] = (unsigned char)(PID_DEFAULT_SETPOINT >> 8);
+	n_DAT[REG_COFFEE_SETPOINT] = (unsigned char)PID_DEFAULT_SETPOINT;
 	n_DAT[REG_PID_KP] = PID_DEFAULT_KP;
 	n_DAT[REG_PID_KI] = PID_DEFAULT_KI;
 	n_DAT[REG_PID_KD] = PID_DEFAULT_KD;

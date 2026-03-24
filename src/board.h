@@ -19,11 +19,10 @@
 #define REG_PUMP_POWER       10  // Pump power (0-127)
 #define REG_COFFEE_POWER     11  // Manual coffee heater power (0-99) when setpoint is 0
 #define REG_STEAM_POWER      12  // Steam heater power (0-99)
-#define REG_COFFEE_SETPOINT_L 13 // Coffee boiler setpoint low byte (decidegrees C)
-#define REG_COFFEE_SETPOINT_H 14 // Coffee boiler setpoint high byte
-#define REG_PID_KP           15  // Coffee PID proportional gain (scaled)
-#define REG_PID_KI           16  // Coffee PID integral gain (scaled)
-#define REG_PID_KD           17  // Coffee PID derivative gain (scaled)
+#define REG_COFFEE_SETPOINT  13  // Coffee boiler setpoint (degrees C, 0-255)
+#define REG_PID_KP           14  // Coffee PID proportional gain (scaled)
+#define REG_PID_KI           15  // Coffee PID integral gain (scaled)
+#define REG_PID_KD           16  // Coffee PID derivative gain (scaled)
 
 // Enum for multi-switch detection (based on resistor values for analog read)
 typedef enum

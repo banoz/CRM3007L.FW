@@ -144,8 +144,7 @@ void board_tick(void)
 
 	coffee_temp = map_coffee_boiler_temperature(system_state.coffee.ntc_value);
 	steam_temp = map_steam_boiler_temperature(system_state.steam.ntc_value);
-	coffee_setpoint = (unsigned int)n_DAT[REG_COFFEE_SETPOINT_L] |
-					  ((unsigned int)n_DAT[REG_COFFEE_SETPOINT_H] << 8);
+	coffee_setpoint = (unsigned int)n_DAT[REG_COFFEE_SETPOINT] * 10;
 
 	// TODO consider implementing IIC mutex
 

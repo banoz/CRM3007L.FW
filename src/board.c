@@ -172,7 +172,7 @@ unsigned char resolve_coffee_power(unsigned int current_temp, unsigned int setpo
 		return n_DAT[REG_COFFEE_POWER];
 	}
 
-	// Safety cutoff and PID reset are enforced in set_coffee_power() using current_temp.
+	// Safety cutoff triggers a PID reset in set_coffee_power() when limits are exceeded.
 	return pid_tick(current_temp, setpoint);
 }
 
@@ -230,7 +230,7 @@ void set_pump_power(unsigned char control_value) // n_DAT[10]
  */
 void set_coffee_power(unsigned char control_value, unsigned int current_temp) // n_DAT[11]
 {
-	// Clamp manual writes or PID output to the shared coffee power range.
+	// Clamp manual writes to the shared coffee power range.
 	if (control_value > COFFEE_POWER_MAX)
 	{
 		control_value = COFFEE_POWER_MAX;

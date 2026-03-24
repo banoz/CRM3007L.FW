@@ -170,14 +170,10 @@ unsigned char resolve_coffee_power(unsigned int current_temp, unsigned int setpo
 	if (setpoint == 0)
 	{
 		pid_reset();
-		if (n_DAT[REG_COFFEE_POWER] > COFFEE_POWER_MAX)
-		{
-			return COFFEE_POWER_MAX;
-		}
 		return n_DAT[REG_COFFEE_POWER];
 	}
 
-	// Safety cutoff is enforced in set_coffee_power() using current_temp.
+	// Safety cutoff and power clamp are enforced in set_coffee_power() using current_temp.
 	return pid_tick(current_temp, setpoint);
 }
 
@@ -235,6 +231,11 @@ void set_pump_power(unsigned char control_value) // n_DAT[10]
  */
 void set_coffee_power(unsigned char control_value, unsigned int current_temp) // n_DAT[11]
 {
+	if (control_value > COFFEE_POWER_MAX)
+	{
+		control_value = COFFEE_POWER_MAX;
+	}
+
 	// Safety check: disable heater if temperature exceeds safe limit or sensor fault detected
 	if (current_temp == TEMP_ERROR_VALUE || current_temp > COFFEE_TEMP_MAX)
 	{

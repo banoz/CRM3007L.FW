@@ -31,7 +31,7 @@ This document describes the I2C register map inferred from the provided code sni
 - **Directions**: Status (read) vs. command (write).
 - **Units**: Sensor temperatures are in decidegrees Celsius (°C × 10); coffee setpoint is whole °C (0-255).
 - **Example**: 950 represents 95.0°C; setpoint 95 targets 95°C.
-- **Safety limit**: `set_coffee_power()` in `board.c` enforces a 1200 (120°C) cutoff via `COFFEE_TEMP_MAX` after PID output is computed.
+- **Safety limit**: `set_coffee_power()` in `board.c` enforces a 1200 (120°C) cutoff via `COFFEE_TEMP_MAX` during power application.
 - **PID reset**: when the cutoff trips, the heater is forced off and the PID state is reset.
 - **Manual mode**: setting coffee setpoint to 0 forces manual power and resets PID state.
 - **Defaults**: PID gains and setpoint boot at 0, so configure them via I2C before enabling PID control.

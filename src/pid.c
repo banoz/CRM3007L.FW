@@ -65,6 +65,7 @@ unsigned char pid_tick(unsigned int current_temp, unsigned int setpoint)
 	saturated_low = (output <= PID_OUTPUT_MIN);
 	saturated_high = (output >= PID_OUTPUT_MAX);
 
+	// Avoid integral windup when output is saturated in the direction of the error.
 	integrate = !((saturated_low && error < 0) || (saturated_high && error > 0));
 	if (integrate)
 	{

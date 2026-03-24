@@ -236,7 +236,7 @@ void set_coffee_power(unsigned char control_value, unsigned int current_temp) //
 		control_value = COFFEE_POWER_MAX;
 	}
 
-	// Safety check: disable heater if temperature exceeds safe limit or sensor fault detected
+	// Safety check: disable heater if temperature exceeds safe limit or sensor fault detected (TEMP_ERROR_VALUE = 0xFFFF).
 	if (current_temp == TEMP_ERROR_VALUE || current_temp > COFFEE_TEMP_MAX)
 	{
 		control_value = 0;

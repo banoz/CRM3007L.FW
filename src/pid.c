@@ -31,16 +31,16 @@ void pid_reset(void)
 
 unsigned char pid_tick(unsigned int current_temp, unsigned int setpoint)
 {
-	int error = 0;
-	int derivative = 0;
-	long output = 0;
-	long output_sum = 0;
-	long p_term = 0;
-	long i_term = 0;
-	long d_term = 0;
-	unsigned char saturated_low = 0;
-	unsigned char saturated_high = 0;
-	unsigned char integrate = 0;
+	int error;
+	int derivative;
+	long output;
+	long output_sum;
+	long p_term;
+	long i_term;
+	long d_term;
+	unsigned char saturated_low;
+	unsigned char saturated_high;
+	unsigned char integrate;
 
 	if (current_temp == TEMP_ERROR_VALUE)
 	{

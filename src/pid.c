@@ -1,3 +1,4 @@
+#include "OB38R16T1.h"
 #include "pid.h"
 #include "board.h"
 #include "sensors.h"
@@ -25,6 +26,17 @@ static long clamp_long(long value, long min_value, long max_value)
 		return max_value;
 	}
 	return value;
+}
+
+static void pid_read_gains(unsigned char *kp, unsigned char *ki, unsigned char *kd)
+{
+	bit previous_ea = EA;
+
+	EA = 0;
+	*kp = n_DAT[REG_PID_KP];
+	*ki = n_DAT[REG_PID_KI];
+	*kd = n_DAT[REG_PID_KD];
+	EA = previous_ea;
 }
 
 void pid_initialize(void)
@@ -55,6 +67,9 @@ unsigned char pid_tick(unsigned int current_temp, unsigned int setpoint)
 	unsigned char saturated_low;
 	unsigned char saturated_high;
 	unsigned char integrate;
+	unsigned char kp;
+	unsigned char ki;
+	unsigned char kd;
 
 	if (current_temp == TEMP_ERROR_VALUE)
 	{
@@ -68,9 +83,10 @@ unsigned char pid_tick(unsigned int current_temp, unsigned int setpoint)
 	derivative = error - pid_last_error;
 	pid_last_error = error;
 
-	p_term = (long)n_DAT[REG_PID_KP] * (long)error;
-	i_term = (long)n_DAT[REG_PID_KI] * pid_integral;
-	d_term = (long)n_DAT[REG_PID_KD] * (long)derivative;
+	pid_read_gains(&kp, &ki, &kd);
+	p_term = (long)kp * (long)error;
+	i_term = (long)ki * pid_integral;
+	d_term = (long)kd * (long)derivative;
 	output_sum = p_term + i_term + d_term;
 	saturated_low = (output_sum <= ((long)PID_OUTPUT_MIN * PID_COEFF_SCALE));
 	saturated_high = (output_sum >= ((long)PID_OUTPUT_MAX * PID_COEFF_SCALE));
@@ -80,7 +96,7 @@ unsigned char pid_tick(unsigned int current_temp, unsigned int setpoint)
 	if (integrate)
 	{
 		pid_integral = clamp_long(pid_integral + error, -PID_INTEGRAL_LIMIT, PID_INTEGRAL_LIMIT);
-		i_term = (long)n_DAT[REG_PID_KI] * pid_integral;
+		i_term = (long)ki * pid_integral;
 		output_sum = p_term + i_term + d_term;
 	}
 

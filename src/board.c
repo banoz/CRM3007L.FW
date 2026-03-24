@@ -164,6 +164,12 @@ void board_tick(void)
 	set_steam_power(n_DAT[12], steam_temp); // n_DAT[12]
 }
 
+/**
+ * @brief Resolve coffee heater power based on manual or PID mode
+ * @param current_temp Current temperature in decidegrees C
+ * @param setpoint Target temperature in decidegrees C (0 means manual mode)
+ * @return Power command (0-127) for coffee heater
+ */
 unsigned char resolve_coffee_power(unsigned int current_temp, unsigned int setpoint)
 {
 	if (setpoint == 0)
@@ -246,6 +252,7 @@ void set_coffee_power(unsigned char control_value, unsigned int current_temp) //
 	if (current_temp == TEMP_ERROR_VALUE || current_temp > COFFEE_TEMP_MAX)
 	{
 		control_value = 0;
+		// Ensure PID state is cleared when safety cutoff triggers.
 		pid_reset();
 	}
 

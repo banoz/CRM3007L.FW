@@ -20,9 +20,12 @@
 #define REG_COFFEE_POWER     11  // Coffee heater power (0-127), manual when setpoint is 0; PID output clamps to same range
 #define REG_STEAM_POWER      12  // Steam heater power (0-127)
 #define REG_COFFEE_SETPOINT  13  // Coffee boiler setpoint (degrees C, 0-255)
-#define REG_PID_KP           14  // Coffee PID proportional gain (scaled)
-#define REG_PID_KI           15  // Coffee PID integral gain (scaled)
-#define REG_PID_KD           16  // Coffee PID derivative gain (scaled)
+#define REG_PID_KP_L         14  // Coffee PID Kp low byte, little-endian, scaled by PID_KP_SCALE
+#define REG_PID_KP_H         15  // Coffee PID Kp high byte
+#define REG_PID_KI_L         16  // Coffee PID Ki low byte, little-endian, scaled by PID_KI_SCALE
+#define REG_PID_KI_H         17  // Coffee PID Ki high byte
+#define REG_PID_KD_L         18  // Coffee PID Kd low byte, little-endian, scaled by PID_KD_SCALE
+#define REG_PID_KD_H         19  // Coffee PID Kd high byte
 
 #define DECIDEGREES_PER_DEGREE (10)
 #define COFFEE_POWER_MAX (0x7F)

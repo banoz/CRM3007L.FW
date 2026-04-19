@@ -1,3 +1,4 @@
+#include <stdint.h>
 #include "OB38R16T1.h"
 #include "pid.h"
 #include "board.h"
@@ -6,6 +7,19 @@
 #define PID_OUTPUT_MIN (0)
 #define PID_OUTPUT_MAX (COFFEE_POWER_MAX)
 #define PID_INTEGRAL_LIMIT (20000L)
+
+/* 16-bit PID gain register map in n_DAT (little-endian). */
+#define PID_REG_KP_L (14)
+#define PID_REG_KP_H (15)
+#define PID_REG_KI_L (16)
+#define PID_REG_KI_H (17)
+#define PID_REG_KD_L (18)
+#define PID_REG_KD_H (19)
+
+/* Separate gain scaling to represent values like [7.7, 0.008, 555]. */
+#define PID_KP_SCALE (10L)
+#define PID_KI_SCALE (1000L)
+#define PID_KD_SCALE (1L)
 
 // PID coefficients are sourced from the I2C register bank to avoid extra copies.
 extern volatile unsigned char n_DAT[];
@@ -28,23 +42,26 @@ static long clamp_long(long value, long min_value, long max_value)
 	return value;
 }
 
-static void pid_read_gains(unsigned char *kp, unsigned char *ki, unsigned char *kd)
+static void pid_read_gains(uint16_t *kp, uint16_t *ki, uint16_t *kd)
 {
 	bit previous_ea = EA;
 
 	EA = 0;
-	*kp = n_DAT[REG_PID_KP];
-	*ki = n_DAT[REG_PID_KI];
-	*kd = n_DAT[REG_PID_KD];
+	*kp = (uint16_t)n_DAT[PID_REG_KP_L] | ((uint16_t)n_DAT[PID_REG_KP_H] << 8);
+	*ki = (uint16_t)n_DAT[PID_REG_KI_L] | ((uint16_t)n_DAT[PID_REG_KI_H] << 8);
+	*kd = (uint16_t)n_DAT[PID_REG_KD_L] | ((uint16_t)n_DAT[PID_REG_KD_H] << 8);
 	EA = previous_ea;
 }
 
 void pid_initialize(void)
 {
 	n_DAT[REG_COFFEE_SETPOINT] = (unsigned char)PID_DEFAULT_SETPOINT;
-	n_DAT[REG_PID_KP] = PID_DEFAULT_KP;
-	n_DAT[REG_PID_KI] = PID_DEFAULT_KI;
-	n_DAT[REG_PID_KD] = PID_DEFAULT_KD;
+	n_DAT[PID_REG_KP_L] = (unsigned char)(PID_DEFAULT_KP & 0xFF);
+	n_DAT[PID_REG_KP_H] = (unsigned char)((PID_DEFAULT_KP >> 8) & 0xFF);
+	n_DAT[PID_REG_KI_L] = (unsigned char)(PID_DEFAULT_KI & 0xFF);
+	n_DAT[PID_REG_KI_H] = (unsigned char)((PID_DEFAULT_KI >> 8) & 0xFF);
+	n_DAT[PID_REG_KD_L] = (unsigned char)(PID_DEFAULT_KD & 0xFF);
+	n_DAT[PID_REG_KD_H] = (unsigned char)((PID_DEFAULT_KD >> 8) & 0xFF);
 	pid_reset();
 }
 
@@ -67,9 +84,9 @@ unsigned char pid_tick(unsigned int current_temp, unsigned int setpoint)
 	unsigned char saturated_low;
 	unsigned char saturated_high;
 	unsigned char integrate;
-	unsigned char kp;
-	unsigned char ki;
-	unsigned char kd;
+	uint16_t kp;
+	uint16_t ki;
+	uint16_t kd;
 
 	if (current_temp == TEMP_ERROR_VALUE)
 	{
@@ -84,23 +101,23 @@ unsigned char pid_tick(unsigned int current_temp, unsigned int setpoint)
 	pid_last_error = error;
 
 	pid_read_gains(&kp, &ki, &kd);
-	p_term = (long)kp * (long)error;
-	i_term = (long)ki * pid_integral;
-	d_term = (long)kd * (long)derivative;
+	p_term = ((long)kp * (long)error) / PID_KP_SCALE;
+	i_term = ((long)ki * pid_integral) / PID_KI_SCALE;
+	d_term = ((long)kd * (long)derivative) / PID_KD_SCALE;
 	output_sum = p_term + i_term + d_term;
-	saturated_low = (output_sum <= ((long)PID_OUTPUT_MIN * PID_COEFF_SCALE));
-	saturated_high = (output_sum >= ((long)PID_OUTPUT_MAX * PID_COEFF_SCALE));
+	saturated_low = (output_sum <= PID_OUTPUT_MIN);
+	saturated_high = (output_sum >= PID_OUTPUT_MAX);
 
 	// Avoid integral windup when output is saturated in the direction of the error.
 	integrate = !((saturated_low && error < 0) || (saturated_high && error > 0));
 	if (integrate)
 	{
 		pid_integral = clamp_long(pid_integral + error, -PID_INTEGRAL_LIMIT, PID_INTEGRAL_LIMIT);
-		i_term = (long)ki * pid_integral;
+		i_term = ((long)ki * pid_integral) / PID_KI_SCALE;
 		output_sum = p_term + i_term + d_term;
 	}
 
-	output = output_sum / PID_COEFF_SCALE;
+	output = output_sum;
 	if (output < PID_OUTPUT_MIN)
 	{
 		output = PID_OUTPUT_MIN;

@@ -18,7 +18,7 @@
 #define REG_VALVES           9   // [2]=K1_3WV [1]=K2_STEAM [0]=K3_COFFEE
 #define REG_PUMP_POWER       10  // Pump power (0-127)
 #define REG_COFFEE_POWER     11  // Coffee heater power (0-127), manual when setpoint is 0; PID output clamps to same range
-#define REG_STEAM_POWER      12  // Steam heater power (0-99)
+#define REG_STEAM_POWER      12  // Steam heater power (0-127)
 #define REG_COFFEE_SETPOINT  13  // Coffee boiler setpoint (degrees C, 0-255)
 #define REG_PID_KP           14  // Coffee PID proportional gain (scaled)
 #define REG_PID_KI           15  // Coffee PID integral gain (scaled)

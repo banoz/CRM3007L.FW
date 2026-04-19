@@ -21,6 +21,10 @@
 #define PID_KI_SCALE (1000L)
 #define PID_KD_SCALE (1L)
 
+/* Compile-time overflow guard: max ki (65535) * integral limit must fit in long. */
+_Static_assert(65535UL * (unsigned long)PID_INTEGRAL_LIMIT <= 2147483647UL,
+	"ki * pid_integral can overflow long — reduce PID_INTEGRAL_LIMIT");
+
 // PID coefficients are sourced from the I2C register bank to avoid extra copies.
 extern volatile unsigned char n_DAT[];
 
@@ -95,6 +99,14 @@ unsigned char pid_tick(unsigned int current_temp, unsigned int setpoint)
 		return 0;
 	}
 
+	if (setpoint > 32767u)
+	{
+		setpoint = 32767u;
+	}
+	if (current_temp > 32767u)
+	{
+		current_temp = 32767u;
+	}
 	error = (int)setpoint - (int)current_temp;
 
 	derivative = error - pid_last_error;

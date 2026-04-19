@@ -1,6 +1,5 @@
 #pragma once
 
-#define PID_COEFF_SCALE (100)
 #define PID_DEFAULT_SETPOINT (0)
 #define PID_DEFAULT_KP (0)
 #define PID_DEFAULT_KI (0)

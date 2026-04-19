@@ -1,14 +1,8 @@
 #ifndef __SENSORS_H__
 #define __SENSORS_H__
 
-// NTC 10kΩ @ 25°C temperature mapping constants
-// Formula: temp(°C × 10) = A + (B × ln(adc_value))
-// Based on datasheet calibration curves for coffee/steam boilers
+// Temperature mapping uses lookup-table linear interpolation in sensors.c
 // Units: decidegrees Celsius (e.g., 950 = 95.0°C)
-#define COFFEE_NTC_A (5674)  // Offset constant
-#define COFFEE_NTC_B (-638)  // Scaling factor
-#define STEAM_NTC_A (4164)   // Offset constant
-#define STEAM_NTC_B (-441)   // Scaling factor
 
 // Sensor fault detection thresholds
 #define ADC_MIN_VALID (10)    // Minimum valid ADC reading (open circuit detection)

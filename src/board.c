@@ -118,8 +118,15 @@ void board_initialize(void)
 
 	// INT0 init
 	IT0 = 1;	   // Edge triggered
-	ENHIT |= 0x02; // Both rising and falling edge enable for INT0
+	ENHIT |= 0x00; // Falling edge enable for INT0
 	EX0 = 1;
+
+	// Interrupt priority: INT0 higher than IIC.
+	// Priority bit mapping follows enable bit positions: EX0->bit0, IIC->bit5.
+	IP0 |= 0x01;
+	IP1 |= 0x01;
+	IP0 &= (unsigned char)~0x20;
+	IP1 &= (unsigned char)~0x20;
 
 	EA = 1;
 
@@ -156,9 +163,9 @@ void board_tick(void)
 
 	n_DAT[6] = pump_psm.psm_counter & 0xFF;
 
-	set_controls(n_DAT[8]);				 // n_DAT[8]
-	set_valves(n_DAT[9]);				 // n_DAT[9]
-	set_pump_power(n_DAT[10]);			 // n_DAT[10]
+	set_controls(n_DAT[8]);	   // n_DAT[8]
+	set_valves(n_DAT[9]);	   // n_DAT[9]
+	set_pump_power(n_DAT[10]); // n_DAT[10]
 	coffee_power = resolve_coffee_power(coffee_temp, coffee_setpoint);
 	set_coffee_power(coffee_power, coffee_temp);
 	set_steam_power(n_DAT[12], steam_temp); // n_DAT[12]

@@ -1,5 +1,6 @@
 #include "OB38R16T1.h"
 #include "board.h"
+#include "pid.h"
 #include "sensors.h"
 #include "HAL\ADC.h"
 #include "HAL\IIC.h"
@@ -53,6 +54,7 @@ extern unsigned char n_DAT[];
 void set_controls(unsigned char);
 void set_valves(unsigned char);
 void set_pump_power(unsigned char);
+unsigned char resolve_coffee_power(unsigned int, unsigned int);
 void set_coffee_power(unsigned char, unsigned int);
 void set_steam_power(unsigned char, unsigned int);
 unsigned int map_coffee_boiler_temperature(unsigned int);
@@ -116,8 +118,15 @@ void board_initialize(void)
 
 	// INT0 init
 	IT0 = 1;	   // Edge triggered
-	ENHIT |= 0x02; // Both rising and falling edge enable for INT0
+	ENHIT |= 0x00; // Falling edge enable for INT0
 	EX0 = 1;
+
+	// Interrupt priority: INT0 higher than IIC.
+	// Priority bit mapping follows enable bit positions: EX0->bit0, IIC->bit5.
+	IP0 |= 0x01;
+	IP1 |= 0x01;
+	IP0 &= (unsigned char)~0x20;
+	IP1 &= (unsigned char)~0x20;
 
 	EA = 1;
 
@@ -137,9 +146,12 @@ void board_tick(void)
 
 	unsigned int coffee_temp = 0; // degree C * 10
 	unsigned int steam_temp = 0;  // degree C * 10
+	unsigned int coffee_setpoint = 0;
+	unsigned char coffee_power = 0;
 
 	coffee_temp = map_coffee_boiler_temperature(system_state.coffee.ntc_value);
 	steam_temp = map_steam_boiler_temperature(system_state.steam.ntc_value);
+	coffee_setpoint = (unsigned int)n_DAT[REG_COFFEE_SETPOINT] * DECIDEGREES_PER_DEGREE; // °C to decidegrees
 
 	// TODO consider implementing IIC mutex
 
@@ -151,11 +163,30 @@ void board_tick(void)
 
 	n_DAT[6] = pump_psm.psm_counter & 0xFF;
 
-	set_controls(n_DAT[8]);					  // n_DAT[8]
-	set_valves(n_DAT[9]);					  // n_DAT[9]
-	set_pump_power(n_DAT[10]);				  // n_DAT[10]
-	set_coffee_power(n_DAT[11], coffee_temp); // n_DAT[11]
-	set_steam_power(n_DAT[12], steam_temp);	  // n_DAT[12]
+	set_controls(n_DAT[8]);	   // n_DAT[8]
+	set_valves(n_DAT[9]);	   // n_DAT[9]
+	set_pump_power(n_DAT[10]); // n_DAT[10]
+	coffee_power = resolve_coffee_power(coffee_temp, coffee_setpoint);
+	set_coffee_power(coffee_power, coffee_temp);
+	set_steam_power(n_DAT[12], steam_temp); // n_DAT[12]
+}
+
+/**
+ * @brief Resolve coffee heater power based on manual or PID mode
+ * @param current_temp Current temperature in decidegrees C
+ * @param setpoint Target temperature in decidegrees C (0 means manual mode)
+ * @return Power command (0-127) for coffee heater
+ */
+unsigned char resolve_coffee_power(unsigned int current_temp, unsigned int setpoint)
+{
+	if (setpoint == 0)
+	{
+		pid_reset();
+		return n_DAT[REG_COFFEE_POWER];
+	}
+
+	// Safety cutoff triggers a PID reset in set_coffee_power() on over-temp or sensor fault.
+	return pid_tick(current_temp, setpoint);
 }
 
 /**
@@ -204,24 +235,32 @@ void set_pump_power(unsigned char control_value) // n_DAT[10]
 	pump_psm.psm_value = control_value;
 }
 
+static unsigned char clamp_coffee_power(unsigned char value)
+{
+	if (value > COFFEE_POWER_MAX)
+	{
+		return COFFEE_POWER_MAX;
+	}
+	return value;
+}
+
 /**
  * @brief Set coffee boiler heater power with temperature safety limits
- * @param control_value Desired power level from I2C register n_DAT[11] (0-99)
+ * @param control_value Desired power level from I2C register n_DAT[11] (0-127)
  * @param current_temp Current temperature in decidegrees C (e.g., 950 = 95.0°C)
  * @note Automatically disables heater if temperature exceeds 120°C or sensor fault detected
  */
 void set_coffee_power(unsigned char control_value, unsigned int current_temp) // n_DAT[11]
 {
-	// Safety check: disable heater if temperature exceeds safe limit
-	if (current_temp > COFFEE_TEMP_MAX)
-	{
-		control_value = 0;
-	}
+	// Clamp manual writes to the shared coffee power range.
+	control_value = clamp_coffee_power(control_value);
 
-	// Safety check: disable heater if sensor fault detected
-	if (current_temp == TEMP_ERROR_VALUE)
+	// Safety check: disable heater if temperature exceeds safe limit or sensor fault detected (TEMP_ERROR_VALUE = 0xFFFF).
+	if (current_temp == TEMP_ERROR_VALUE || current_temp > COFFEE_TEMP_MAX)
 	{
 		control_value = 0;
+		// Ensure PID state is cleared when safety cutoff triggers.
+		pid_reset();
 	}
 
 	coffee_boiler_psm.psm_value = control_value; // 0~127 range

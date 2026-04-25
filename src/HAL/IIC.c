@@ -18,7 +18,8 @@
 volatile unsigned char n_RW          = d_null;
 volatile unsigned char n_Addr        = d_null;
 volatile unsigned char n_Next_Step   = d_null;
-volatile unsigned char n_DAT[16] = {0};
+// Expanded register map to cover PID gains and 1-byte setpoint.
+volatile unsigned char n_DAT[20] = {0};
 
 //=====================================================================
 
@@ -82,6 +83,4 @@ void IIC_init_slave(void)
     //IEN0   |= 0x80;             // Enable interrupt All
     IICCTL  = 0x80;             // Enable IIC module, slave mode, use IICA1
 }
-
-
 

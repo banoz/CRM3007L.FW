@@ -17,8 +17,18 @@
 #define REG_CONTROLS         8   // [7]=PSM_RST [3]=S2_LED [2]=S1_LED [1]=PWR_LED [0]=STATUS_LED
 #define REG_VALVES           9   // [2]=K1_3WV [1]=K2_STEAM [0]=K3_COFFEE
 #define REG_PUMP_POWER       10  // Pump power (0-127)
-#define REG_COFFEE_POWER     11  // Coffee heater power (0-99)
-#define REG_STEAM_POWER      12  // Steam heater power (0-99)
+#define REG_COFFEE_POWER     11  // Coffee heater power (0-127), manual when setpoint is 0; PID output clamps to same range
+#define REG_STEAM_POWER      12  // Steam heater power (0-127)
+#define REG_COFFEE_SETPOINT  13  // Coffee boiler setpoint (degrees C, 0-255)
+#define REG_PID_KP_L         14  // Coffee PID Kp low byte, little-endian, scaled by PID_KP_SCALE
+#define REG_PID_KP_H         15  // Coffee PID Kp high byte
+#define REG_PID_KI_L         16  // Coffee PID Ki low byte, little-endian, scaled by PID_KI_SCALE
+#define REG_PID_KI_H         17  // Coffee PID Ki high byte
+#define REG_PID_KD_L         18  // Coffee PID Kd low byte, little-endian, scaled by PID_KD_SCALE
+#define REG_PID_KD_H         19  // Coffee PID Kd high byte
+
+#define DECIDEGREES_PER_DEGREE (10)
+#define COFFEE_POWER_MAX (0x7F)
 
 // Enum for multi-switch detection (based on resistor values for analog read)
 typedef enum

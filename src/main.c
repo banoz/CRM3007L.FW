@@ -24,6 +24,7 @@ unsigned int cntr1 = 0;
 void main(void)
 {
 	board_initialize();
+	pid_initialize();
 
 	// WDTR_Init(); // TODO this breaks ADC, fix later
 
@@ -36,8 +37,6 @@ void main(void)
 			nextTick = getTick() + TICK_INTERVAL_MS;
 
 			board_tick();
-
-			pid_tick();
 
 			WDTR_CountClear();
 		}

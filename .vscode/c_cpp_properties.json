@@ -1,0 +1,29 @@
+{
+    "configurations": [
+        {
+            "name": "SDCC",
+            "includePath": [
+                "${workspaceFolder}/**",
+                "C:/Program Files/SDCC/include",
+                "C:/Program Files/SDCC/include/mcs51"
+            ],
+            "browse": {
+                "limitSymbolsToIncludedHeaders": true,
+                "path": [
+                    "C:/Program Files/SDCC/include",
+                    "C:/Program Files/SDCC/include/mcs51"
+                ]
+            },
+            "compilerPath": "C:/Program Files/SDCC/bin/sdcc.exe",
+            "compilerArgs": [
+                "-mmcs51"
+            ],
+            "cStandard": "c11",
+            "intelliSenseMode": "${default}",
+            "forcedInclude": [
+                "C:/Program Files/SDCC/include/mcs51/lint.h"
+            ]
+        }
+    ],
+    "version": 4
+}

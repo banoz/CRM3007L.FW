@@ -1,6 +1,6 @@
 #include <stdint.h>
 #include "OB38R16T1.h"
-#include "HAL\ADC.h"
+#include "HAL/ADC.h"
 #include "board.h"
 #include "sensors.h"
 

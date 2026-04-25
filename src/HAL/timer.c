@@ -6,11 +6,15 @@
 #define d_MODEVALUE_T0      65536     //MODE1 16bit 65536
 #define d_RELOADVALUE_T0    1310      //Reload value to get 1 ms tick
 
-unsigned long halTick = 0;
+volatile unsigned long halTick = 0;
 
 unsigned long getTick(void) 
 {
-	return halTick;
+	unsigned long tick;
+	ET0 = 0;
+	tick = halTick;
+	ET0 = 1;
+	return tick;
 }
 
 void TIMER0_initialize(void)  //Initialize TIMER0

@@ -2,13 +2,11 @@
 #include "board.h"
 #include "pid.h"
 #include "sensors.h"
-#include "HAL\ADC.h"
-#include "HAL\IIC.h"
-#include "HAL\PWM.h"
-#include "HAL\timer.h"
-#include "HAL\UART.h"
-#include <stdlib.h> // For atoi, _itoa, etc.
-#include <stdio.h>	// For sprintf
+#include "HAL/ADC.h"
+#include "HAL/IIC.h"
+#include "HAL/PWM.h"
+#include "HAL/timer.h"
+#include "HAL/UART.h"
 
 #define STATUS_LED P0_1
 #define S1_LED P0_2
@@ -117,8 +115,7 @@ void board_initialize(void)
 	// init_UART();
 
 	// INT0 init
-	IT0 = 1;	   // Edge triggered
-	ENHIT |= 0x00; // Falling edge enable for INT0
+	IT0 = 1;	   // Edge triggered (IT0=1 selects falling-edge; hardware default is falling-edge)
 	EX0 = 1;
 
 	// Interrupt priority: INT0 higher than IIC.
@@ -155,7 +152,7 @@ void board_tick(void)
 
 	// TODO consider implementing IIC mutex
 
-	n_DAT[0] = system_state.multi_switch | (system_state.steam_switch << 4);
+	n_DAT[0] = (system_state.multi_switch & 0x0F) | ((system_state.steam_switch & 0x0F) << 4);
 	n_DAT[1] = coffee_temp & 0xFF;
 	n_DAT[2] = coffee_temp >> 8;
 	n_DAT[3] = steam_temp & 0xFF;
@@ -313,12 +310,6 @@ bit calculateSkip(psm_state *psm)
 		psm_skip = 1;
 	}
 
-	if (psm->psm_a > psm->psm_range)
-	{
-		psm->psm_a = 0;
-		psm_skip = 0;
-	}
-
 	if (!psm_skip)
 	{
 		psm->psm_counter++;
@@ -336,12 +327,12 @@ void check_zc(void)
 {
 	if (zero_crossed)
 	{
+		zero_crossed = 0; // Clear immediately to avoid missing the next edge
+
 		ADC_poll();
 
 		PUMP = calculateSkip(&pump_psm);
 		H_COFFEE = calculateSkip(&coffee_boiler_psm);
-
-		zero_crossed = 0;
 	}
 }
 

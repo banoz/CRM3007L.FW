@@ -1,6 +1,8 @@
 #ifndef __SENSORS_H__
 #define __SENSORS_H__
 
+#include "board.h"
+
 // Temperature mapping uses lookup-table linear interpolation in sensors.c
 // Units: decidegrees Celsius (e.g., 950 = 95.0°C)
 

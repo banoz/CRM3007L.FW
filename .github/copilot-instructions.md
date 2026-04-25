@@ -20,7 +20,7 @@ This project uses SDCC (Small Device C Compiler) to develop firmware for the OB3
 - Keep interrupt handlers short and efficient
 - Use `__at` keyword for absolute addressing when needed
 - Use `__interrupt` keyword for interrupt service routines
-- Be mindful of memory constraints: 16KB Flash, 512B SRAM
+- Be mindful of memory constraints: 16KB Flash, 256B IRAM, 512B SRAM
 - Optimize code for size when working near Flash limits
 
 ## Build Instructions

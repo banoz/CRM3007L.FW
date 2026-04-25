@@ -39,8 +39,11 @@ void IIC_ISR(void) interrupt d_IIC_Vector
 			}
 			else
 			{
-				IICRWD = n_DAT[n_Addr];
-				n_Addr++;
+				if (n_Addr < sizeof(n_DAT))
+				{
+					IICRWD = n_DAT[n_Addr];
+					n_Addr++;
+				}
 			}	
 		}
 		else if(n_RW == d_Write)
@@ -48,11 +51,18 @@ void IIC_ISR(void) interrupt d_IIC_Vector
 			if (n_Next_Step == d_SAVE_ADDR)
 			{ 
 				n_Addr = IICRWD;
+				if (n_Addr >= sizeof(n_DAT))
+				{
+					n_Addr = sizeof(n_DAT) - 1;
+				}
 				n_Next_Step = d_SAVE_DATA;						
 			}
 			else if (n_Next_Step == d_SAVE_DATA)
 			{
-				n_DAT[n_Addr++] = IICRWD;
+				if (n_Addr < sizeof(n_DAT))
+				{
+					n_DAT[n_Addr++] = IICRWD;
+				}
 				n_Next_Step = d_SAVE_DATA;					
 			}
 		}
@@ -63,8 +73,11 @@ void IIC_ISR(void) interrupt d_IIC_Vector
 		TXIF = 0;
 		if(RXAK == 0)
 		{
-			IICRWD = n_DAT[n_Addr];
-			n_Addr++;
+			if (n_Addr < sizeof(n_DAT))
+			{
+				IICRWD = n_DAT[n_Addr];
+				n_Addr++;
+			}
 		}
 		IICEBT = d_CMD_RW;            // IIC bus ready
 	}

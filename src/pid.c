@@ -79,7 +79,7 @@ void pid_reset(void)
 unsigned char pid_tick(unsigned int current_temp, unsigned int setpoint)
 {
 	int error;
-	int derivative;
+	long derivative;
 	long output;
 	long output_sum;
 	long p_term;
@@ -109,7 +109,7 @@ unsigned char pid_tick(unsigned int current_temp, unsigned int setpoint)
 	}
 	error = (int)setpoint - (int)current_temp;
 
-	derivative = error - pid_last_error;
+	derivative = (long)error - (long)pid_last_error;
 	pid_last_error = error;
 
 	pid_read_gains(&kp, &ki, &kd);
